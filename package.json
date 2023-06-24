@@ -17,12 +17,13 @@
   },
   "dependencies": {
     "buffer-reader": "^0.1.0",
-    "helpful-decorators": "^2.1.0",
+    "lodash.once": "^4.1.1",
     "lz4-napi": "^2.2.0"
   },
   "devDependencies": {
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/buffer-reader": "^0.1.0",
+    "@types/lodash.once": "^4.1.7",
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
     "eslint": "^8.43.0",

@@ -1,4 +1,3 @@
-import { bind } from 'helpful-decorators';
 import { createAssetObject } from './classes';
 import type { BufferReaderExtended } from './utils/reader';
 import { createExtendedBufferReader } from './utils/reader';
@@ -39,6 +38,7 @@ export class Asset {
   private readonly enableBigId: boolean = false;
   private readonly types: TypeInfo[] = [];
   private readonly objectInfos: ObjectInfo[] = [];
+  private readonly cloneReader = () => this.reader.clone();
 
   constructor(data: Buffer) {
     const r = createExtendedBufferReader(data);
@@ -126,11 +126,6 @@ export class Asset {
 
   public objects() {
     return this.objectInfos.map(createAssetObject);
-  }
-
-  @bind
-  private cloneReader() {
-    return this.reader.clone();
   }
 
   // 未完整实现，只用于跳过
