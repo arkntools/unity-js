@@ -16,7 +16,6 @@
     "postversion": "tpv"
   },
   "dependencies": {
-    "async-binary-stream": "^1.0.2",
     "buffer-reader": "^0.1.0",
     "helpful-decorators": "^2.1.0",
     "lz4-napi": "^2.2.0"

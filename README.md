@@ -15,7 +15,7 @@ import fs from 'fs';
 import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 
 (async () => {
-  const bundle = await loadAssetBundle(fs.createReadStream('character_table003334.ab'));
+  const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab'));
   bundle.objects().forEach(obj => {
     if (obj.type === AssetType.TextAsset) {
       const textAsset = obj.load();

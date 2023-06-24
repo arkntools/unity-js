@@ -1,5 +1,3 @@
-import type { Readable } from 'stream';
-import AsyncBinaryStream from 'async-binary-stream';
 import BufferReader from 'buffer-reader';
 import { uncompress as decompressLz4 } from 'lz4-napi';
 import { Asset } from './asset';
@@ -75,13 +73,13 @@ export class AssetBundle {
 
   private constructor(private readonly header: BundleHeader) {}
 
-  static async load(data: Readable) {
-    const s = new AsyncBinaryStream(data);
+  static async load(data: Buffer) {
+    const r = new BufferReader(data);
 
-    const signature = await s.readNullTerminatingString();
-    const version = await s.readUInt32BE();
-    const unityVersion = await s.readNullTerminatingString();
-    const unityReversion = await s.readNullTerminatingString();
+    const signature = r.nextStringZero();
+    const version = r.nextUInt32BE();
+    const unityVersion = r.nextStringZero();
+    const unityReversion = r.nextStringZero();
 
     const bundle = new AssetBundle({
       signature,
@@ -94,7 +92,7 @@ export class AssetBundle {
       flags: 0,
     });
 
-    await bundle.read(s);
+    await bundle.read(r);
 
     return bundle;
   }
@@ -103,15 +101,15 @@ export class AssetBundle {
     return [...this.assetObjects];
   }
 
-  private async read(s: AsyncBinaryStream) {
+  private async read(r: BufferReader) {
     const { signature } = this.header;
 
     const files = await (async () => {
       switch (signature) {
         case Signature.UNITY_FS:
-          await this.readHeader(s);
-          await this.readBlocksInfoAndDirectory(s);
-          return this.readFiles(await this.readBlocks(s));
+          this.readHeader(r);
+          await this.readBlocksInfoAndDirectory(r);
+          return this.readFiles(await this.readBlocks(r));
 
         default:
           throw new Error(`Unsupported bundle type: ${signature}`);
@@ -123,20 +121,20 @@ export class AssetBundle {
       .flatMap(f => new Asset(f).objects());
   }
 
-  private async readHeader(s: AsyncBinaryStream) {
+  private readHeader(r: BufferReader) {
     const { header } = this;
 
     if (header.version >= 7) {
       throw new Error(`Unsupported bundle version: ${header.version}`);
     }
 
-    header.size = Number(await s.readInt64BE());
-    header.compressedBlocksInfoSize = await s.readUInt32BE();
-    header.uncompressedBlocksInfoSize = await s.readUInt32BE();
-    header.flags = await s.readUInt32BE();
+    header.size = bufferReaderReadBigInt64BE(r);
+    header.compressedBlocksInfoSize = r.nextUInt32BE();
+    header.uncompressedBlocksInfoSize = r.nextUInt32BE();
+    header.flags = r.nextUInt32BE();
   }
 
-  private async readBlocksInfoAndDirectory(s: AsyncBinaryStream) {
+  private async readBlocksInfoAndDirectory(r: BufferReader) {
     const { flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
     if (
       flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END ||
@@ -145,7 +143,7 @@ export class AssetBundle {
       throw new Error(`Unsupported bundle flags: ${flags}`);
     }
 
-    const blockInfoBuffer = await s.readBuffer(compressedBlocksInfoSize);
+    const blockInfoBuffer = r.nextBuffer(compressedBlocksInfoSize);
     const compressionType = flags & ArchiveFlags.COMPRESSION_TYPE_MASK;
     const blockInfoUncompressedBuffer = await decompressBuffer(
       blockInfoBuffer,
@@ -182,12 +180,12 @@ export class AssetBundle {
     }
   }
 
-  private async readBlocks(s: AsyncBinaryStream) {
+  private async readBlocks(r: BufferReader) {
     const results: Buffer[] = [];
 
     for (const { flags, compressedSize, uncompressedSize } of this.blockInfos) {
       const compressionType = flags & StorageBlockFlags.COMPRESSION_TYPE_MASK;
-      const compressedBuffer = await s.readBuffer(compressedSize);
+      const compressedBuffer = r.nextBuffer(compressedSize);
       const uncompressedBuffer = await decompressBuffer(
         compressedBuffer,
         compressionType,

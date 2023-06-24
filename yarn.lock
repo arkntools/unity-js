@@ -464,11 +464,6 @@ astral-regex@^2.0.0:
   resolved "https://registry.yarnpkg.com/astral-regex/-/astral-regex-2.0.0.tgz#483143c567aeed4785759c0865786dc77d7d2e31"
   integrity sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==
 
-async-binary-stream@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/async-binary-stream/-/async-binary-stream-1.0.2.tgz#80ca1e3b6364b44dd420b2b654b2ae918b257afb"
-  integrity sha512-DH1P/ose+oVwWPBci1swcSgsAlJ5s4kYyryGwMi0oYh20vMZDW/NcF888pdKwSJVS1LYr+EWWImXn6alPu18EA==
-
 available-typed-arrays@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
