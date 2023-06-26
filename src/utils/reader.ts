@@ -9,9 +9,16 @@ interface ExtendedMethods {
   setEndianness: (e: number) => void;
   align: (size: number) => void;
   nextAlignedString: () => string;
-  nextInt64LE: () => number;
-  nextInt64BE: () => number;
-  nextInt64: () => number;
+  nextInt64LE: () => bigint;
+  nextInt64BE: () => bigint;
+  nextInt64: () => bigint;
+  nextInt64Number: () => number;
+  nextInt64String: () => string;
+  nextUInt64LE: () => bigint;
+  nextUInt64BE: () => bigint;
+  nextUInt64: () => bigint;
+  nextUInt64Number: () => number;
+  nextUInt64String: () => string;
 }
 
 export type BufferReaderExtended = BufferReader & {
@@ -51,9 +58,16 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
       fns.align(4);
       return result;
     },
-    nextInt64LE: () => Number(r.nextBuffer(8).readBigInt64LE()),
-    nextInt64BE: () => Number(r.nextBuffer(8).readBigInt64BE()),
+    nextInt64LE: () => r.nextBuffer(8).readBigInt64LE(),
+    nextInt64BE: () => r.nextBuffer(8).readBigInt64BE(),
     nextInt64: () => (endianness ? fns.nextInt64BE() : fns.nextInt64LE()),
+    nextInt64Number: () => Number(fns.nextInt64()),
+    nextInt64String: () => String(fns.nextInt64()),
+    nextUInt64LE: () => r.nextBuffer(8).readBigUint64LE(),
+    nextUInt64BE: () => r.nextBuffer(8).readBigUint64BE(),
+    nextUInt64: () => (endianness ? fns.nextUInt64BE() : fns.nextUInt64LE()),
+    nextUInt64Number: () => Number(fns.nextUInt64()),
+    nextUInt64String: () => String(fns.nextUInt64()),
   };
   const eR = new Proxy(r, {
     get(target, p, receiver) {

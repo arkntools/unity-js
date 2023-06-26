@@ -68,8 +68,9 @@ enum FileType {
 }
 
 export class AssetBundle {
+  public readonly nodes: StorageNode[] = [];
+  public readonly files: Buffer[] = [];
   private readonly blockInfos: StorageBlock[] = [];
-  private readonly nodes: StorageNode[] = [];
   private assetObjects: AssetObject[] = [];
 
   private constructor(private readonly header: BundleHeader) {}
@@ -105,21 +106,20 @@ export class AssetBundle {
   private async read(r: BufferReader) {
     const { signature } = this.header;
 
-    const files = await (async () => {
-      switch (signature) {
-        case Signature.UNITY_FS:
-          this.readHeader(r);
-          await this.readBlocksInfoAndDirectory(r);
-          return this.readFiles(await this.readBlocks(r));
+    switch (signature) {
+      case Signature.UNITY_FS:
+        this.readHeader(r);
+        await this.readBlocksInfoAndDirectory(r);
+        this.files.push(...this.readFiles(await this.readBlocks(r)));
+        break;
 
-        default:
-          throw new Error(`Unsupported bundle type: ${signature}`);
-      }
-    })();
+      default:
+        throw new Error(`Unsupported bundle type: ${signature}`);
+    }
 
-    this.assetObjects = files
+    this.assetObjects = this.files
       .filter(f => getFileType(f) === FileType.ASSETS_FILE)
-      .flatMap(f => new Asset(f).objects());
+      .flatMap(f => new Asset(this, f).objects());
   }
 
   private readHeader(r: BufferReader) {

@@ -1,14 +1,11 @@
-import type { ObjectInfo } from '../asset';
-import type { AssetInterface, AssetType, ImplementedAssetType } from './types';
+import { AssetBase } from './base';
+import type { AssetType } from './types';
+import type { ImplementedAssetType } from '.';
 
-export class UnknownAsset implements AssetInterface {
-  readonly type: Exclude<AssetType, ImplementedAssetType>;
+export class UnknownAsset extends AssetBase<void> {
+  readonly type: Exclude<AssetType, ImplementedAssetType> = this.info.classId;
 
-  constructor(private readonly info: ObjectInfo) {
-    this.type = info.classId;
-  }
-
-  load() {
+  async load() {
     throw new Error('This type of asset is not implemented.');
   }
 }

@@ -1,3 +1,4 @@
+import type { AssetBundle } from './bundle';
 import { createAssetObject } from './classes';
 import type { BufferReaderExtended } from './utils/reader';
 import { createExtendedBufferReader } from './utils/reader';
@@ -16,6 +17,7 @@ interface TypeInfo {
 
 export interface ObjectInfo {
   getReader: () => BufferReaderExtended;
+  bundle: AssetBundle;
   buildType: string;
   assetVersion: number;
   bytesStart: number;
@@ -24,8 +26,8 @@ export interface ObjectInfo {
   classId: number;
   isDestroyed: number;
   stripped: number;
-  pathId: number;
-  version: string;
+  pathId: string;
+  version: number[];
 }
 
 export class Asset {
@@ -33,6 +35,7 @@ export class Asset {
   private readonly header: AssetHeader;
   private readonly fileEndianness: number = 0;
   private readonly unityVersion: string = '';
+  private readonly version: number[] = [];
   private readonly targetPlatform: number = 0;
   private readonly enableTypeTree: boolean = false;
   private readonly enableBigId: boolean = false;
@@ -40,7 +43,7 @@ export class Asset {
   private readonly objectInfos: ObjectInfo[] = [];
   private readonly cloneReader = () => this.reader.clone();
 
-  constructor(data: Buffer) {
+  constructor(bundle: AssetBundle, data: Buffer) {
     const r = createExtendedBufferReader(data);
     this.reader = r;
 
@@ -63,12 +66,13 @@ export class Asset {
 
     if (header.version >= 22) {
       header.metadataSize = r.nextUInt32();
-      header.fileSize = r.nextInt64();
-      header.dataOffset = r.nextInt64();
+      header.fileSize = r.nextInt64Number();
+      header.dataOffset = r.nextInt64Number();
       r.move(8);
     }
     if (header.version >= 7) {
       this.unityVersion = r.nextStringZero();
+      this.version = this.unityVersion.split('.').map(s => Number(s));
     }
     if (header.version >= 8) {
       this.targetPlatform = r.nextInt32();
@@ -90,6 +94,7 @@ export class Asset {
     for (let i = 0; i < objectCount; i++) {
       const info: ObjectInfo = {
         getReader: this.cloneReader,
+        bundle,
         buildType: '',
         assetVersion: 0,
         bytesStart: 0,
@@ -98,17 +103,17 @@ export class Asset {
         classId: 0,
         isDestroyed: 0,
         stripped: 0,
-        pathId: 0,
-        version: '',
+        pathId: '',
+        version: this.version,
       };
 
-      if (this.enableBigId) r.move(8);
-      else if (header.version < 14) r.move(4);
+      if (this.enableBigId) info.pathId = r.nextInt64String();
+      else if (header.version < 14) info.pathId = String(r.nextInt32());
       else {
         r.align(4);
-        r.move(8);
+        info.pathId = r.nextInt64String();
       }
-      info.bytesStart = header.version >= 22 ? r.nextInt64() : r.nextUInt32();
+      info.bytesStart = header.version >= 22 ? r.nextInt64Number() : r.nextUInt32();
       info.bytesStart += header.dataOffset;
       info.bytesSize = r.nextUInt32();
       info.typeId = r.nextInt32();
@@ -138,8 +143,17 @@ export class Asset {
     };
 
     if (version >= 16) r.move(1);
-    if (version >= 17) r.move(2);
-    if (version >= 13) r.move(16);
+    const scriptTypeIndex = version >= 17 ? r.nextInt16() : null;
+    if (version >= 13) {
+      if (
+        (isRefType && scriptTypeIndex !== null) ||
+        (version < 16 && info.classId < 0) ||
+        (version >= 16 && info.classId === 114)
+      ) {
+        r.move(16);
+      }
+      r.move(16);
+    }
     if (this.enableTypeTree) {
       if (version >= 12 || version === 10) this.readTypeTreeBlob();
       else throw new Error(`Unsupported asset version: ${version}`);

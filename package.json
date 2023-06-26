@@ -18,13 +18,14 @@
   "dependencies": {
     "buffer-reader": "^0.1.0",
     "jszip": "^3.10.1",
-    "lodash.once": "^4.1.1",
+    "jimp": "^0.22.8",
+    "lodash": "^4.17.21",
     "lz4-napi": "^2.2.0"
   },
   "devDependencies": {
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/buffer-reader": "^0.1.0",
-    "@types/lodash.once": "^4.1.7",
+    "@types/lodash": "^4.14.195",
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
     "eslint": "^8.43.0",

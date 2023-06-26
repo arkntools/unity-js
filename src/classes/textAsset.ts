@@ -1,14 +1,16 @@
-import once from 'lodash.once';
-import type { ObjectInfo } from '../asset';
-import type { AssetInterface } from './types';
+import { cloneDeep, once } from 'lodash';
+import { AssetBase } from './base';
 import { AssetType } from './types';
 
-export class TextAsset implements AssetInterface {
+export interface TextAssetResult {
+  name: string;
+  data: Buffer;
+}
+
+export class TextAsset extends AssetBase<TextAssetResult> {
   readonly type = AssetType.TextAsset;
 
-  constructor(private readonly info: ObjectInfo) {}
-
-  load = once(() => {
+  private readonly read = once(() => {
     const r = this.info.getReader();
     r.seek(this.info.bytesStart);
     const name = r.nextAlignedString();
@@ -16,4 +18,8 @@ export class TextAsset implements AssetInterface {
     const data = r.nextBuffer(length);
     return { name, data };
   });
+
+  async load() {
+    return cloneDeep(this.read());
+  }
 }
