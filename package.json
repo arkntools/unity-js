@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "buffer-reader": "^0.1.0",
+    "jszip": "^3.10.1",
     "lodash.once": "^4.1.1",
     "lz4-napi": "^2.2.0"
   },

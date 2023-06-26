@@ -2,6 +2,7 @@ import BufferReader from 'buffer-reader';
 import { uncompress as decompressLz4 } from 'lz4-napi';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
+import { unzipIfNeed } from './utils/zip';
 
 interface BundleHeader {
   signature: string;
@@ -74,7 +75,7 @@ export class AssetBundle {
   private constructor(private readonly header: BundleHeader) {}
 
   static async load(data: Buffer) {
-    const r = new BufferReader(data);
+    const r = new BufferReader(await unzipIfNeed(data));
 
     const signature = r.nextStringZero();
     const version = r.nextUInt32BE();
