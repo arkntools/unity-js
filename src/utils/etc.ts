@@ -54,7 +54,8 @@ const decodeEtc1Block = (data: Buffer) => {
     c[0][2] = (data[2] & 0xf0) | (data[2] >> 4);
     c[1][2] = (data[2] & 0x0f) | (data[2] << 4);
   }
-  let [j, k] = Uint16Array.from([(data[6] << 8) | data[7], (data[4] << 8) | data[5]]);
+  let j = (data[6] << 8) | data[7];
+  let k = (data[4] << 8) | data[5];
   const result: Uint8Array[] = Array(16);
   for (const [i, s] of table.entries()) {
     let m = ETC1_MODIFIER_TABLE[code[s]][j & 1];
