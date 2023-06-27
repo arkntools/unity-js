@@ -69,7 +69,7 @@ export class Texture2D extends AssetBase<Texture2DResult> {
       name,
       width,
       height,
-      data: await img.getBufferAsync(Jimp.MIME_PNG),
+      data: await img.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG),
     };
   });
 
