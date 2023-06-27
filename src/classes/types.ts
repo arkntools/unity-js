@@ -1,3 +1,5 @@
+export type { ObjectInfo } from '../asset';
+
 export enum AssetType {
   UnknownType = -1,
   Object = 0,

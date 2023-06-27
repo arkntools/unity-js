@@ -1,6 +1,6 @@
-import type { ObjectInfo } from '../asset';
 import { TextAsset } from './textAsset';
 import { Texture2D } from './texture2d';
+import type { ObjectInfo } from './types';
 import { AssetType } from './types';
 import { UnknownAsset } from './unknown';
 
