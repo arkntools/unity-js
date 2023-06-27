@@ -20,7 +20,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
   const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab'));
   for (const obj of bundle.objects) {
     if (obj.type === AssetType.TextAsset) {
-      const asset = obj.load();
+      const asset = await obj.load();
       fs.writeFileSync(`${asset.name}.bytes`, asset.data);
       break;
     }
