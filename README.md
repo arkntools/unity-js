@@ -18,12 +18,13 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 
 (async () => {
   const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab'));
-  bundle.objects.forEach(obj => {
+  for (const obj of bundle.objects) {
     if (obj.type === AssetType.TextAsset) {
       const asset = obj.load();
       fs.writeFileSync(`${asset.name}.bytes`, asset.data);
+      break;
     }
-  });
+  }
 })();
 
 (async () => {
@@ -32,6 +33,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
     if (obj.type === AssetType.Sprite && obj.name === 'char_002_amiya') {
       const asset = await obj.load();
       fs.writeFileSync(`${asset.name}.png`, asset.data);
+      break;
     }
   }
 })();
