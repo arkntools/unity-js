@@ -1,4 +1,4 @@
-import type { AssetBundle } from './bundle';
+import type { Bundle } from './bundle';
 import { createAssetObject } from './classes';
 import type { BufferReaderExtended } from './utils/reader';
 import { createExtendedBufferReader } from './utils/reader';
@@ -17,7 +17,7 @@ interface TypeInfo {
 
 export interface ObjectInfo {
   getReader: () => BufferReaderExtended;
-  bundle: AssetBundle;
+  bundle: Bundle;
   buildType: string;
   assetVersion: number;
   bytesStart: number;
@@ -36,6 +36,7 @@ export class Asset {
   private readonly fileEndianness: number = 0;
   private readonly unityVersion: string = '';
   private readonly version: number[] = [];
+  private readonly buildType: string = '';
   private readonly targetPlatform: number = 0;
   private readonly enableTypeTree: boolean = false;
   private readonly enableBigId: boolean = false;
@@ -43,7 +44,7 @@ export class Asset {
   private readonly objectInfos: ObjectInfo[] = [];
   private readonly cloneReader = () => this.reader.clone();
 
-  constructor(bundle: AssetBundle, data: Buffer) {
+  constructor(bundle: Bundle, data: Buffer) {
     const r = createExtendedBufferReader(data);
     this.reader = r;
 
@@ -62,17 +63,21 @@ export class Asset {
       r.seek(header.fileSize - header.metadataSize);
       this.fileEndianness = r.nextUInt8();
     }
-    r.setEndianness(this.fileEndianness);
-
     if (header.version >= 22) {
       header.metadataSize = r.nextUInt32();
       header.fileSize = r.nextInt64Number();
       header.dataOffset = r.nextInt64Number();
       r.move(8);
     }
+    r.setEndianness(this.fileEndianness);
     if (header.version >= 7) {
       this.unityVersion = r.nextStringZero();
-      this.version = this.unityVersion.split('.').map(s => Number(s));
+      this.version = this.unityVersion
+        .replace(/[a-z]+/gi, '.')
+        .split('.')
+        .slice(0, 4)
+        .map(s => Number(s));
+      this.buildType = this.unityVersion.match(/[a-z]/i)?.[0] ?? '';
     }
     if (header.version >= 8) {
       this.targetPlatform = r.nextInt32();
@@ -95,8 +100,8 @@ export class Asset {
       const info: ObjectInfo = {
         getReader: this.cloneReader,
         bundle,
-        buildType: '',
-        assetVersion: 0,
+        buildType: this.buildType,
+        assetVersion: header.version,
         bytesStart: 0,
         bytesSize: 0,
         typeId: 0,

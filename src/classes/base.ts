@@ -14,5 +14,9 @@ export abstract class AssetBase<T> {
     }
   }
 
-  abstract load(): Promise<T>;
+  get pathId() {
+    return this.info.pathId;
+  }
+
+  abstract load(...args: any[]): Promise<T>;
 }

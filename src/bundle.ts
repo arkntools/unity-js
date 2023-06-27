@@ -68,12 +68,11 @@ enum FileType {
 }
 
 export class AssetBundle {
-  public readonly nodes: StorageNode[] = [];
-  public readonly files: Buffer[] = [];
-  private readonly blockInfos: StorageBlock[] = [];
-  private assetObjects: AssetObject[] = [];
+  private constructor(private readonly bundle: Bundle) {}
 
-  private constructor(private readonly header: BundleHeader) {}
+  get objects() {
+    return Array.from(this.bundle.objectMap.values());
+  }
 
   static async load(data: Buffer) {
     const r = new BufferReader(await unzipIfNeed(data));
@@ -83,7 +82,7 @@ export class AssetBundle {
     const unityVersion = r.nextStringZero();
     const unityReversion = r.nextStringZero();
 
-    const bundle = new AssetBundle({
+    const bundle = new Bundle({
       signature,
       version,
       unityVersion,
@@ -96,14 +95,19 @@ export class AssetBundle {
 
     await bundle.read(r);
 
-    return bundle;
+    return new AssetBundle(bundle);
   }
+}
 
-  public objects() {
-    return [...this.assetObjects];
-  }
+export class Bundle {
+  public readonly nodes: StorageNode[] = [];
+  public readonly files: Buffer[] = [];
+  public readonly objectMap = new Map<string, AssetObject>();
+  private readonly blockInfos: StorageBlock[] = [];
 
-  private async read(r: BufferReader) {
+  public constructor(private readonly header: BundleHeader) {}
+
+  public async read(r: BufferReader) {
     const { signature } = this.header;
 
     switch (signature) {
@@ -117,9 +121,12 @@ export class AssetBundle {
         throw new Error(`Unsupported bundle type: ${signature}`);
     }
 
-    this.assetObjects = this.files
+    this.files
       .filter(f => getFileType(f) === FileType.ASSETS_FILE)
-      .flatMap(f => new Asset(this, f).objects());
+      .flatMap(f => new Asset(this, f).objects())
+      .forEach(obj => {
+        this.objectMap.set(obj.pathId, obj);
+      });
   }
 
   private readHeader(r: BufferReader) {

@@ -1,7 +1,7 @@
 import BufferReader from 'buffer-reader';
-import Jimp from 'jimp';
 import { cloneDeep, last, once } from 'lodash';
 import { decodeEtc1 } from '../utils/etc';
+import { Jimp } from '../utils/jimp';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
 import { AssetType, TextureFormat } from './types';
@@ -22,7 +22,15 @@ interface StreamInfo {
 export class Texture2D extends AssetBase<Texture2DResult> {
   readonly type = AssetType.Texture2D;
 
-  private readonly read = once(async () => {
+  get image() {
+    return this.read().image.clone();
+  }
+
+  async load(): Promise<Texture2DResult> {
+    return cloneDeep(await this.handleResult());
+  }
+
+  private readonly read = once(() => {
     const { version } = this.info;
     const r = this.info.getReader();
     r.seek(this.info.bytesStart);
@@ -64,12 +72,12 @@ export class Texture2D extends AssetBase<Texture2DResult> {
         : undefined;
     const data = streamInfo?.path ? this.readData(streamInfo) : r.nextBuffer(size);
     const decodedData = this.decodeImage(data, width, height, format);
-    const img = new Jimp({ data: decodedData, width, height });
+    const image = new Jimp({ data: decodedData, width, height });
     return {
       name,
       width,
       height,
-      data: await img.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG),
+      image,
     };
   });
 
@@ -108,7 +116,11 @@ export class Texture2D extends AssetBase<Texture2DResult> {
     }
   }
 
-  async load(): Promise<Texture2DResult> {
-    return cloneDeep(await this.read());
-  }
+  private readonly handleResult = once(async () => {
+    const { image, ...rest } = this.read();
+    return {
+      ...rest,
+      data: await image.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG),
+    };
+  });
 }

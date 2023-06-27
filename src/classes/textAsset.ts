@@ -10,6 +10,10 @@ export interface TextAssetResult {
 export class TextAsset extends AssetBase<TextAssetResult> {
   readonly type = AssetType.TextAsset;
 
+  async load() {
+    return cloneDeep(this.read());
+  }
+
   private readonly read = once(() => {
     const r = this.info.getReader();
     r.seek(this.info.bytesStart);
@@ -18,8 +22,4 @@ export class TextAsset extends AssetBase<TextAssetResult> {
     const data = r.nextBuffer(length);
     return { name, data };
   });
-
-  async load() {
-    return cloneDeep(this.read());
-  }
 }

@@ -1,4 +1,5 @@
 import BufferReader from 'buffer-reader';
+import type { RectF32, Vector2, Vector3, Vector4 } from '../types';
 
 type BufferReaderReadFn = Extract<keyof BufferReader, `${string}BE`> extends `${infer Prefix}BE`
   ? Prefix
@@ -19,6 +20,10 @@ interface ExtendedMethods {
   nextUInt64: () => bigint;
   nextUInt64Number: () => number;
   nextUInt64String: () => string;
+  nextRectF32: () => RectF32;
+  nextVector2: () => Vector2;
+  nextVector3: () => Vector3;
+  nextVector4: () => Vector4;
 }
 
 export type BufferReaderExtended = BufferReader & {
@@ -53,7 +58,7 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
       r.seek(after);
     },
     nextAlignedString: () => {
-      const length = eR.nextInt32();
+      const length = re.nextInt32();
       const result = r.nextString(length);
       fns.align(4);
       return result;
@@ -68,8 +73,29 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
     nextUInt64: () => (endianness ? fns.nextUInt64BE() : fns.nextUInt64LE()),
     nextUInt64Number: () => Number(fns.nextUInt64()),
     nextUInt64String: () => String(fns.nextUInt64()),
+    nextRectF32: () => ({
+      x: re.nextFloat(),
+      y: re.nextFloat(),
+      width: re.nextFloat(),
+      height: re.nextFloat(),
+    }),
+    nextVector2: () => ({
+      x: re.nextFloat(),
+      y: re.nextFloat(),
+    }),
+    nextVector3: () => ({
+      x: re.nextFloat(),
+      y: re.nextFloat(),
+      z: re.nextFloat(),
+    }),
+    nextVector4: () => ({
+      x: re.nextFloat(),
+      y: re.nextFloat(),
+      z: re.nextFloat(),
+      w: re.nextFloat(),
+    }),
   };
-  const eR = new Proxy(r, {
+  const re = new Proxy(r, {
     get(target, p, receiver) {
       if (isBufferReaderReadFn(p)) {
         return Reflect.get(target, `${p}${endianness ? 'BE' : 'LE'}`, receiver);
@@ -81,5 +107,5 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
     },
   }) as any as BufferReaderExtended;
 
-  return eR;
+  return re;
 };

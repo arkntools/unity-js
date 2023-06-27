@@ -50,5 +50,6 @@ module.exports = {
         },
       },
     ],
-  }
+    'no-new': 'off',
+  },
 };

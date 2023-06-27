@@ -9,6 +9,8 @@ Unity ab 解包的 js 实现，抄自 [yuanyan3060/unity-rs](https://github.com/
 目前仅支持：
 
 - TextAsset
+- Texture2d
+- Sprite
 
 ```js
 import fs from 'fs';
@@ -16,11 +18,21 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 
 (async () => {
   const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab'));
-  bundle.objects().forEach(obj => {
+  bundle.objects.forEach(obj => {
     if (obj.type === AssetType.TextAsset) {
-      const textAsset = obj.load();
-      fs.writeFileSync(`${textAsset.name}.bytes`, textAsset.data);
+      const asset = obj.load();
+      fs.writeFileSync(`${asset.name}.bytes`, asset.data);
     }
   });
+})();
+
+(async () => {
+  const bundle = await loadAssetBundle(fs.readFileSync('spritepack_ui_char_avatar_h1_0.ab'));
+  for (const obj of bundle.objects) {
+    if (obj.type === AssetType.Sprite && obj.name === 'char_002_amiya') {
+      const asset = await obj.load();
+      fs.writeFileSync(`${asset.name}.png`, asset.data);
+    }
+  }
 })();
 ```
