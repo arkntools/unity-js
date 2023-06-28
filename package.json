@@ -1,6 +1,6 @@
 {
   "name": "@arkntools/unity-js",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "main": "./dist/index.js",
   "author": "神代綺凛 <i@loli.best>",
   "license": "AGPL-3.0",
