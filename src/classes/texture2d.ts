@@ -1,5 +1,5 @@
 import BufferReader from 'buffer-reader';
-import { cloneDeep, last, once } from 'lodash';
+import { cloneDeep, last, omit, once } from 'lodash';
 import { decodeEtc1 } from '../utils/etc';
 import { Jimp } from '../utils/jimp';
 import type { BufferReaderExtended } from '../utils/reader';
@@ -24,6 +24,10 @@ export class Texture2D extends AssetBase<Texture2DResult> {
 
   get image() {
     return this.read().image.clone();
+  }
+
+  get meta(): Omit<Texture2DResult, 'data'> {
+    return omit(this.read(), 'image');
   }
 
   async load(): Promise<Texture2DResult> {

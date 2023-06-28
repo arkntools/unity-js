@@ -1,4 +1,4 @@
-import { cloneDeep, once } from 'lodash';
+import { cloneDeep, omit, once } from 'lodash';
 import type { Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
 import { Jimp } from '../utils/jimp';
@@ -28,6 +28,10 @@ export class Sprite extends AssetBase<SpriteResult> {
 
   get image() {
     return this.read().image.clone();
+  }
+
+  get meta(): Omit<SpriteResult, 'data'> {
+    return omit(this.read(), 'image');
   }
 
   async load(): Promise<SpriteResult> {
