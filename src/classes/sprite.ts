@@ -1,7 +1,7 @@
+import Jimp from 'jimp';
 import { cloneDeep, omit, once } from 'lodash';
 import type { Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
-import { Jimp } from '../utils/jimp';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ObjectInfo } from './types';

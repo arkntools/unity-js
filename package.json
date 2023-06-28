@@ -16,12 +16,8 @@
     "postversion": "tpv"
   },
   "dependencies": {
-    "@jimp/custom": "^0.22.8",
-    "@jimp/plugin-color": "^0.22.8",
-    "@jimp/plugin-crop": "^0.22.8",
-    "@jimp/plugin-resize": "^0.22.8",
-    "@jimp/png": "^0.22.8",
     "buffer-reader": "^0.1.0",
+    "jimp": "^0.22.8",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "lz4-napi": "^2.2.0"

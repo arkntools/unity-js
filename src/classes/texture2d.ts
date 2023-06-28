@@ -1,7 +1,7 @@
 import BufferReader from 'buffer-reader';
+import Jimp from 'jimp';
 import { cloneDeep, last, omit, once } from 'lodash';
 import { decodeEtc1 } from '../utils/etc';
-import { Jimp } from '../utils/jimp';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
 import { AssetType, TextureFormat } from './types';
