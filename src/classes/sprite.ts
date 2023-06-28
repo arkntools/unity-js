@@ -1,6 +1,6 @@
 import { cloneDeep, once } from 'lodash';
 import type { Texture2D } from '..';
-import type { RectF32 } from '../types';
+import type { RectF32, Vector2, Vector4 } from '../types';
 import { Jimp } from '../utils/jimp';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
@@ -12,8 +12,13 @@ const textureCache = new Map<string, Jimp>();
 
 export interface SpriteResult {
   name: string;
-  width: number;
-  height: number;
+  rect: RectF32;
+  offset: Vector2;
+  border?: Vector4;
+  pixelsToUnits: number;
+  pivot?: Vector2;
+  extrude: number;
+  isPolygon?: boolean;
   data: Buffer;
 }
 
@@ -35,7 +40,8 @@ export class Sprite extends AssetBase<SpriteResult> {
     const name = r.nextAlignedString();
     const rect = r.nextRectF32();
     const offset = r.nextVector2();
-    const border = version[0] > 4 || (version[0] === 4 && version[1] >= 5) ? r.nextVector4() : null;
+    const border =
+      version[0] > 4 || (version[0] === 4 && version[1] >= 5) ? r.nextVector4() : undefined;
     const pixelsToUnits = r.nextFloat();
     const pivot =
       version[0] > 5 ||
@@ -47,9 +53,9 @@ export class Sprite extends AssetBase<SpriteResult> {
         version[3] >= 3 &&
         this.info.buildType === 'p')
         ? r.nextVector2()
-        : null;
+        : undefined;
     const extrude = r.nextUInt32();
-    let isPolygon: boolean | null = null;
+    let isPolygon: boolean | undefined;
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 3)) {
       isPolygon = !!r.nextUInt8();
       r.align(4);
@@ -73,20 +79,14 @@ export class Sprite extends AssetBase<SpriteResult> {
       extrude,
       isPolygon,
       spriteRenderData,
-      image: spriteRenderData.getImage(name),
+      image: spriteRenderData.getImage(),
     };
   });
 
   private readonly handleResult = once(async () => {
-    const {
-      name,
-      rect: { width, height },
-      image,
-    } = this.read();
+    const { image, ...rest } = this.read();
     return {
-      name,
-      width,
-      height,
+      ...rest,
       data: await image.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG),
     };
   });
@@ -140,11 +140,10 @@ class SpriteRenderData {
     }
   }
 
-  public getImage(name?: string) {
+  public getImage() {
     const textureObj = this.texture.object;
     if (!textureObj) throw new Error(`Cannot find texture "${this.texture.pathId}".`);
-    const alphaTextureObj =
-      this.alphaTexture?.object ?? (name ? this.findAlphaTexture(name) : undefined);
+    const alphaTextureObj = this.alphaTexture?.object ?? this.findAlphaTexture(textureObj);
     const cacheKey = `${this.texture.pathId}-${alphaTextureObj?.pathId ?? ''}`;
     const mixedTexture =
       textureCache.get(cacheKey) ??
@@ -172,11 +171,13 @@ class SpriteRenderData {
     return mixedTexture;
   }
 
-  private findAlphaTexture(name: string) {
-    const alphaName = `${name}[alpha]`;
-    return Array.from(this.info.bundle.objectMap.values()).find(
-      obj => obj.type === AssetType.Texture2D && obj.name === alphaName,
-    ) as Texture2D | undefined;
+  private findAlphaTexture(texture: Texture2D) {
+    return this.info.bundle.options?.findAlphaTexture?.(
+      texture,
+      Array.from(this.info.bundle.objectMap.values()).filter(
+        (obj): obj is Texture2D => obj.type === AssetType.Texture2D,
+      ),
+    );
   }
 
   private loadSubMesh(r: BufferReaderExtended) {

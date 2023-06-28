@@ -37,4 +37,19 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
     }
   }
 })();
+
+(async () => {
+  const bundle = await loadAssetBundle(fs.readFileSync('char_1028_texas2.ab'), {
+    // 有些 Sprite 可能不会给出 AlphaTexture 的 PathID，可以传入自定义函数去寻找
+    findAlphaTexture: (texture, assets) =>
+      assets.find(({ name }) => name === `${texture.name}[alpha]`),
+  });
+  for (const obj of bundle.objects) {
+    if (obj.type === AssetType.Sprite && obj.name === 'char_1028_texas2_1') {
+      const asset = await obj.load();
+      fs.writeFileSync(`${asset.name}.png`, asset.data);
+      break;
+    }
+  }
+})();
 ```

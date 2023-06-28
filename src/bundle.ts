@@ -3,6 +3,7 @@ import { uncompress as decompressLz4 } from 'lz4-napi';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
 import { unzipIfNeed } from './utils/zip';
+import type { Texture2D } from '.';
 
 interface BundleHeader {
   signature: string;
@@ -67,6 +68,11 @@ enum FileType {
   ZIP_FILE,
 }
 
+export interface BundleLoadOptions {
+  /** 有些 Sprite 可能不会给出 AlphaTexture 的 PathID，可以传入自定义函数去寻找 */
+  findAlphaTexture?: (texture: Texture2D, assets: Texture2D[]) => Texture2D | undefined;
+}
+
 export class AssetBundle {
   private constructor(private readonly bundle: Bundle) {}
 
@@ -74,7 +80,7 @@ export class AssetBundle {
     return Array.from(this.bundle.objectMap.values());
   }
 
-  static async load(data: Buffer) {
+  static async load(data: Buffer, options?: BundleLoadOptions) {
     const r = new BufferReader(await unzipIfNeed(data));
 
     const signature = r.nextStringZero();
@@ -82,16 +88,19 @@ export class AssetBundle {
     const unityVersion = r.nextStringZero();
     const unityReversion = r.nextStringZero();
 
-    const bundle = new Bundle({
-      signature,
-      version,
-      unityVersion,
-      unityReversion,
-      size: 0,
-      compressedBlocksInfoSize: 0,
-      uncompressedBlocksInfoSize: 0,
-      flags: 0,
-    });
+    const bundle = new Bundle(
+      {
+        signature,
+        version,
+        unityVersion,
+        unityReversion,
+        size: 0,
+        compressedBlocksInfoSize: 0,
+        uncompressedBlocksInfoSize: 0,
+        flags: 0,
+      },
+      options,
+    );
 
     await bundle.read(r);
 
@@ -105,7 +114,10 @@ export class Bundle {
   public readonly objectMap = new Map<string, AssetObject>();
   private readonly blockInfos: StorageBlock[] = [];
 
-  public constructor(private readonly header: BundleHeader) {}
+  public constructor(
+    private readonly header: BundleHeader,
+    public readonly options?: BundleLoadOptions,
+  ) {}
 
   public async read(r: BufferReader) {
     const { signature } = this.header;

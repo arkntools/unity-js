@@ -10,7 +10,7 @@ export interface TextAssetResult {
 export class TextAsset extends AssetBase<TextAssetResult> {
   readonly type = AssetType.TextAsset;
 
-  async load() {
+  async load(): Promise<TextAssetResult> {
     return cloneDeep(this.read());
   }
 
