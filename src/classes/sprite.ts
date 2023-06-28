@@ -19,6 +19,7 @@ export interface SpriteResult {
   pivot?: Vector2;
   extrude: number;
   isPolygon?: boolean;
+  spriteRenderData: SpriteRenderData;
   data: Buffer;
 }
 
@@ -110,6 +111,7 @@ class SpriteRenderData {
   texture: PPtr<Texture2D>;
   alphaTexture?: PPtr<Texture2D>;
   textureRect?: RectF32;
+  textureRectOffset?: Vector2;
 
   constructor(private readonly info: ObjectInfo, r: BufferReaderExtended) {
     const { version } = this.info;
@@ -130,6 +132,7 @@ class SpriteRenderData {
       r.align(4);
       this.loadVertexData(r);
       this.textureRect = r.nextRectF32();
+      this.textureRectOffset = r.nextVector2();
     } else {
       const size = r.nextInt32();
       for (let i = 0; i < size; i++) {
