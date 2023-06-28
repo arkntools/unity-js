@@ -1,5 +1,5 @@
 import { cloneDeep, once } from 'lodash';
-import type { Texture2D, UnknownAsset } from '..';
+import type { Texture2D } from '..';
 import type { RectF32 } from '../types';
 import { Jimp } from '../utils/jimp';
 import type { BufferReaderExtended } from '../utils/reader';
@@ -60,7 +60,7 @@ export class Sprite extends AssetBase<SpriteResult> {
       for (let i = 0; i < length; i++) {
         r.nextAlignedString();
       }
-      new PPtr<UnknownAsset>(this.info, r);
+      new PPtr<any>(this.info, r);
     }
     const spriteRenderData = new SpriteRenderData(this.info, r);
     return {
