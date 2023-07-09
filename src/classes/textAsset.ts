@@ -1,4 +1,4 @@
-import { cloneDeep, once } from 'lodash';
+import { once } from 'lodash';
 import { AssetBase } from './base';
 import { AssetType } from './types';
 
@@ -10,8 +10,8 @@ export interface TextAssetResult {
 export class TextAsset extends AssetBase<TextAssetResult> {
   readonly type = AssetType.TextAsset;
 
-  async load(): Promise<TextAssetResult> {
-    return cloneDeep(this.read());
+  async load(): Promise<Readonly<TextAssetResult>> {
+    return this.read();
   }
 
   private readonly read = once(() => {

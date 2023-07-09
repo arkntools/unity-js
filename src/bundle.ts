@@ -3,7 +3,8 @@ import { uncompress as decompressLz4 } from 'lz4-napi';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
 import { unzipIfNeed } from './utils/zip';
-import type { Texture2D } from '.';
+import { AssetType } from '.';
+import type { AssetBundle, Texture2D } from '.';
 
 interface BundleHeader {
   signature: string;
@@ -73,7 +74,7 @@ export interface BundleLoadOptions {
   findAlphaTexture?: (texture: Texture2D, assets: Texture2D[]) => Texture2D | undefined;
 }
 
-export class AssetBundle {
+export class UnityAssetBundle {
   private constructor(private readonly bundle: Bundle) {}
 
   get objects() {
@@ -104,7 +105,7 @@ export class AssetBundle {
 
     await bundle.read(r);
 
-    return new AssetBundle(bundle);
+    return new UnityAssetBundle(bundle);
   }
 }
 
@@ -112,6 +113,7 @@ export class Bundle {
   public readonly nodes: StorageNode[] = [];
   public readonly files: Buffer[] = [];
   public readonly objectMap = new Map<string, AssetObject>();
+  public containerMap?: Map<string, string>;
   private readonly blockInfos: StorageBlock[] = [];
 
   public constructor(
@@ -133,12 +135,23 @@ export class Bundle {
         throw new Error(`Unsupported bundle type: ${signature}`);
     }
 
+    let assetBundle: AssetBundle | undefined;
+
     this.files
       .filter(f => getFileType(f) === FileType.ASSETS_FILE)
       .flatMap(f => new Asset(this, f).objects())
       .forEach(obj => {
         this.objectMap.set(obj.pathId, obj);
+        if (obj.type === AssetType.AssetBundle) assetBundle = obj;
       });
+
+    if (assetBundle) {
+      try {
+        this.containerMap = (await assetBundle.load()).containerMap;
+      } catch (error) {
+        console.error('Read container error:', error);
+      }
+    }
   }
 
   private readHeader(r: BufferReader) {

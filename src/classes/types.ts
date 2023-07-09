@@ -1,5 +1,7 @@
 export type { ObjectInfo } from '../asset';
 
+export type PairData<T, U> = [T, U];
+
 export enum AssetType {
   UnknownType = -1,
   Object = 0,

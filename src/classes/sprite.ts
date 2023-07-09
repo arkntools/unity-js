@@ -1,12 +1,12 @@
 import Jimp from 'jimp';
-import { cloneDeep, omit, once } from 'lodash';
+import { omit, once } from 'lodash';
 import type { Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
+import { PPtr } from './pptr';
 import type { ObjectInfo } from './types';
 import { AssetType } from './types';
-import type { AssetObject } from '.';
 
 const textureCache = new Map<string, Jimp>();
 
@@ -34,8 +34,8 @@ export class Sprite extends AssetBase<SpriteResult> {
     return omit(this.read(), 'image');
   }
 
-  async load(): Promise<SpriteResult> {
-    return cloneDeep(await this.handleResult());
+  load(): Promise<Readonly<SpriteResult>> {
+    return this.handleResult();
   }
 
   private readonly read = once(() => {
@@ -95,20 +95,6 @@ export class Sprite extends AssetBase<SpriteResult> {
       data: await image.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG),
     };
   });
-}
-
-class PPtr<T extends AssetObject> {
-  fileId: number;
-  pathId: string;
-
-  constructor(private readonly info: ObjectInfo, r: BufferReaderExtended) {
-    this.fileId = r.nextInt32();
-    this.pathId = info.assetVersion < 14 ? String(r.nextInt32()) : r.nextInt64String();
-  }
-
-  get object() {
-    return this.info.bundle.objectMap.get(this.pathId) as T | undefined;
-  }
 }
 
 class SpriteRenderData {

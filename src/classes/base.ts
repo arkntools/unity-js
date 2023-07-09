@@ -18,5 +18,9 @@ export abstract class AssetBase<T> {
     return this.info.pathId;
   }
 
-  abstract load(...args: any[]): Promise<T>;
+  get container() {
+    return this.info.bundle.containerMap?.get(this.pathId);
+  }
+
+  abstract load(...args: any[]): Promise<Readonly<T>>;
 }

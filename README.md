@@ -2,15 +2,16 @@
 
 [![NPM version](https://img.shields.io/npm/v/@arkntools/unity-js?style=flat-square)](https://www.npmjs.com/package/@arkntools/unity-js)
 
-Unity ab 解包的 js 实现，抄自 [yuanyan3060/unity-rs](https://github.com/yuanyan3060/unity-rs)
+Unity ab 解包的 js 实现，抄自 [K0lb3/UnityPy](https://github.com/K0lb3/UnityPy) & [yuanyan3060/unity-rs](https://github.com/yuanyan3060/unity-rs)
 
-仅做了项目所需的最低限度实现，如果需要较完整的功能建议还是去用大佬的 ↑
+仅做了项目所需的最低限度实现，如果需要较完整的功能建议还是去用现成的
 
 目前仅支持：
 
 - TextAsset
 - Texture2d
 - Sprite
+- AssetBundle
 
 ```js
 import fs from 'fs';
