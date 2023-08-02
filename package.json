@@ -16,6 +16,7 @@
     "postversion": "tpv"
   },
   "dependencies": {
+    "@arkntools/astc-decode": "^1.0.0",
     "buffer-reader": "^0.1.0",
     "jimp": "^0.22.8",
     "jszip": "^3.10.1",

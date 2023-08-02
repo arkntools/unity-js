@@ -67,6 +67,11 @@
   resolved "https://registry.yarnpkg.com/@antoniomuso/lz4-napi-win32-x64-msvc/-/lz4-napi-win32-x64-msvc-2.2.0.tgz#ebe48b1907763922922bb771642e2033c1d17434"
   integrity sha512-sJZjXEIjtK7upjh1oHpDELAH45jL/dNdg/mzYg61ljprtfjsza40h8e/Sq0IQOCmJc6IR746bGcttPM297nhzQ==
 
+"@arkntools/astc-decode@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@arkntools/astc-decode/-/astc-decode-1.0.0.tgz#e18b1a5a62be42db478fe932d5fb2a9e90f52527"
+  integrity sha512-w83Eg+lRP6ZYQuA2gXcJ8Z9XG32HVoxiBFxEYDbo1RuLAZDXwq8o4qJ6kjeqXl5NASnxutDZjlGhpOrtr8udSg==
+
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz#00629c35a688e05a88b1cda684fb9d5e73f000a1"

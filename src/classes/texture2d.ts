@@ -1,6 +1,7 @@
 import BufferReader from 'buffer-reader';
 import Jimp from 'jimp';
 import { last, omit, once } from 'lodash';
+import { decodeAstc, isSupportedAstcFormat } from '../utils/astc';
 import { decodeEtc1 } from '../utils/etc';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
@@ -75,7 +76,7 @@ export class Texture2D extends AssetBase<Texture2DResult> {
         ? this.readStreamInfo(r)
         : undefined;
     const data = streamInfo?.path ? this.readData(streamInfo) : r.nextBuffer(size);
-    const decodedData = this.decodeImage(data, width, height, format);
+    const decodedData = this.decodeImage(data, width, height, format, name);
     const image = new Jimp({ data: decodedData, width, height });
     return {
       name,
@@ -111,12 +112,13 @@ export class Texture2D extends AssetBase<Texture2DResult> {
     return r.nextBuffer(streamInfo.size);
   }
 
-  private decodeImage(data: Buffer, width: number, height: number, format: number) {
+  private decodeImage(data: Buffer, width: number, height: number, format: number, name: string) {
     switch (format) {
       case TextureFormat.ETC_RGB4:
         return decodeEtc1(data, width, height);
       default:
-        throw new Error(`Texture2d image format "${format}" is not implemented.`);
+        if (isSupportedAstcFormat(format)) return decodeAstc(data, width, height, format);
+        throw new Error(`Texture2d image "${name}" format "${format}" is not implemented.`);
     }
   }
 
