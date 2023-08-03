@@ -1,5 +1,5 @@
+import { decompressLz4 } from '@arkntools/unity-js-tools';
 import BufferReader from 'buffer-reader';
-import { uncompress as decompressLz4 } from 'lz4-napi';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
 import { unzipIfNeed } from './utils/zip';
@@ -127,8 +127,8 @@ export class Bundle {
     switch (signature) {
       case Signature.UNITY_FS:
         this.readHeader(r);
-        await this.readBlocksInfoAndDirectory(r);
-        this.files.push(...this.readFiles(await this.readBlocks(r)));
+        this.readBlocksInfoAndDirectory(r);
+        this.files.push(...this.readFiles(this.readBlocks(r)));
         break;
 
       default:
@@ -167,7 +167,7 @@ export class Bundle {
     header.flags = r.nextUInt32BE();
   }
 
-  private async readBlocksInfoAndDirectory(r: BufferReader) {
+  private readBlocksInfoAndDirectory(r: BufferReader) {
     const { flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
     if (
       flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END ||
@@ -178,7 +178,7 @@ export class Bundle {
 
     const blockInfoBuffer = r.nextBuffer(compressedBlocksInfoSize);
     const compressionType = flags & ArchiveFlags.COMPRESSION_TYPE_MASK;
-    const blockInfoUncompressedBuffer = await decompressBuffer(
+    const blockInfoUncompressedBuffer = decompressBuffer(
       blockInfoBuffer,
       compressionType,
       uncompressedBlocksInfoSize,
@@ -213,13 +213,13 @@ export class Bundle {
     }
   }
 
-  private async readBlocks(r: BufferReader) {
+  private readBlocks(r: BufferReader) {
     const results: Buffer[] = [];
 
     for (const { flags, compressedSize, uncompressedSize } of this.blockInfos) {
       const compressionType = flags & StorageBlockFlags.COMPRESSION_TYPE_MASK;
       const compressedBuffer = r.nextBuffer(compressedSize);
-      const uncompressedBuffer = await decompressBuffer(
+      const uncompressedBuffer = decompressBuffer(
         compressedBuffer,
         compressionType,
         uncompressedSize,
@@ -243,7 +243,7 @@ export class Bundle {
   }
 }
 
-const decompressBuffer = async (data: Buffer, type: number, uncompressedSize?: number) => {
+const decompressBuffer = (data: Buffer, type: number, uncompressedSize?: number) => {
   switch (type) {
     case CompressionType.NONE:
       return data;
@@ -251,9 +251,7 @@ const decompressBuffer = async (data: Buffer, type: number, uncompressedSize?: n
     case CompressionType.LZ4:
     case CompressionType.LZ4_HC: {
       if (!uncompressedSize) throw new Error('Uncompressed size not provided');
-      const sizeBuffer = Buffer.alloc(4);
-      sizeBuffer.writeUInt32LE(uncompressedSize);
-      return await decompressLz4(Buffer.concat([sizeBuffer, data]));
+      return Buffer.from(decompressLz4(data, uncompressedSize));
     }
 
     default:
