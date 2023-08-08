@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@arkntools/unity-js-tools@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@arkntools/unity-js-tools/-/unity-js-tools-1.0.1.tgz#db0ee3255c9264d56d88a47d80bbdb336db31615"
-  integrity sha512-n8U6Lvr4nSnCTETYN5rPYdAWiFbRJDOrod+dxrDxzlCQTnsIHGVdqsjPX4/qTfK18DmOnzrWA7NBzkptn7F3lg==
+"@arkntools/unity-js-tools@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@arkntools/unity-js-tools/-/unity-js-tools-1.1.0.tgz#3df25594fd86f383c9bf86cbd070bb1935c6e2ad"
+  integrity sha512-+oJxVRV214GpRWkCktROTX+k29EM96pgyC7jx9AtGqc17jRZvwpU0peM4Rp9imQ8wTVWCkPllkaJvAVN9x4fww==
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
@@ -448,6 +448,11 @@
   version "4.14.196"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.196.tgz#a7c3d6fc52d8d71328b764e28e080b4169ec7a95"
   integrity sha512-22y3o88f4a94mKljsZcanlNWPzO0uBsBdzLAngf2tp533LzZcQzb6+eZPJ+vCTt+bqF2XnvT9gejTLsAcJAJyQ==
+
+"@types/nested-error-stacks@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@types/nested-error-stacks/-/nested-error-stacks-2.1.0.tgz#0e4caf703b874c3c4e6ba74dbc0c6acf88b8ce05"
+  integrity sha512-7+la7jn6iA603lBgyASoaW5Nk/R5G3+hkJ4Y0gtc9VYHlcixvm/YBV2KV92dTBpeCQJYjpN2owb5jVuKCqxOaA==
 
 "@types/node@*":
   version "20.3.1"
@@ -2215,6 +2220,11 @@ natural-compare@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
+
+nested-error-stacks@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/nested-error-stacks/-/nested-error-stacks-2.1.1.tgz#26c8a3cee6cc05fbcf1e333cd2fc3e003326c0b5"
+  integrity sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==
 
 node-fetch@^2.6.1:
   version "2.6.11"

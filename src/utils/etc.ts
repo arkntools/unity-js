@@ -14,6 +14,7 @@ const ETC1_MODIFIER_TABLE = [
   [47, 183],
 ];
 
+/** @deprecated use @arkntools/unity-js-tools */
 export const decodeEtc1 = (data: Buffer, w: number, h: number) => {
   const image = new Uint8Array(w * h * 4);
   const numBX = Math.ceil(w / 4);

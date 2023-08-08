@@ -16,16 +16,18 @@
     "postversion": "tpv"
   },
   "dependencies": {
-    "@arkntools/unity-js-tools": "^1.0.1",
+    "@arkntools/unity-js-tools": "^1.1.0",
     "buffer-reader": "^0.1.0",
     "jimp": "^0.22.10",
     "jszip": "^3.10.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "nested-error-stacks": "^2.1.1"
   },
   "devDependencies": {
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/buffer-reader": "^0.1.0",
     "@types/lodash": "^4.14.196",
+    "@types/nested-error-stacks": "^2.1.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.46.0",

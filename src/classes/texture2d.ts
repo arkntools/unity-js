@@ -1,11 +1,11 @@
 import BufferReader from 'buffer-reader';
 import Jimp from 'jimp';
 import { last, omit, once } from 'lodash';
-import { decodeAstc, isSupportedAstcFormat } from '../utils/astc';
-import { decodeEtc1 } from '../utils/etc';
+import NestedError from 'nested-error-stacks';
+import { decodeTexture } from '../utils/decodeTexture';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
-import { AssetType, TextureFormat } from './types';
+import { AssetType } from './types';
 
 export interface Texture2DResult {
   name: string;
@@ -76,7 +76,7 @@ export class Texture2D extends AssetBase<Texture2DResult> {
         ? this.readStreamInfo(r)
         : undefined;
     const data = streamInfo?.path ? this.readData(streamInfo) : r.nextBuffer(size);
-    const decodedData = this.decodeImage(data, width, height, format, name);
+    const decodedData = this.decodeTexture(data, width, height, format, name);
     const image = new Jimp({ data: decodedData, width, height });
     return {
       name,
@@ -112,13 +112,11 @@ export class Texture2D extends AssetBase<Texture2DResult> {
     return r.nextBuffer(streamInfo.size);
   }
 
-  private decodeImage(data: Buffer, width: number, height: number, format: number, name: string) {
-    switch (format) {
-      case TextureFormat.ETC_RGB4:
-        return decodeEtc1(data, width, height);
-      default:
-        if (isSupportedAstcFormat(format)) return decodeAstc(data, width, height, format);
-        throw new Error(`Texture2d image "${name}" format "${format}" is not implemented.`);
+  private decodeTexture(data: Buffer, width: number, height: number, format: number, name: string) {
+    try {
+      return decodeTexture(data, width, height, format);
+    } catch (error: any) {
+      throw new NestedError(`Decode texture for "${name}" failed.`, error);
     }
   }
 
