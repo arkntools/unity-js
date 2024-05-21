@@ -2,6 +2,7 @@ import { decompressLz4 } from '@arkntools/unity-js-tools';
 import BufferReader from 'buffer-reader';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
+import { UnityCN } from './utils/unitycn';
 import { unzipIfNeed } from './utils/zip';
 import { AssetType } from '.';
 import type { AssetBundle, Texture2D } from '.';
@@ -49,6 +50,7 @@ enum ArchiveFlags {
   BLOCKS_INFO_AT_THE_END = 0x80,
   OLD_WEB_PLUGIN_COMPATIBILITY = 0x100,
   BLOCK_INFO_NEED_PADDING_AT_START = 0x200,
+  UNITY_CN_ENCRYPTION = 0x400,
 }
 
 enum CompressionType {
@@ -72,6 +74,7 @@ enum FileType {
 export interface BundleLoadOptions {
   /** 有些 Sprite 可能不会给出 AlphaTexture 的 PathID，可以传入自定义函数去寻找 */
   findAlphaTexture?: (texture: Texture2D, assets: Texture2D[]) => Texture2D | undefined;
+  unityCNKey?: string;
 }
 
 export class UnityAssetBundle {
@@ -115,6 +118,8 @@ export class Bundle {
   public readonly objectMap = new Map<string, AssetObject>();
   public containerMap?: Map<string, string>;
   private readonly blockInfos: StorageBlock[] = [];
+  private hasBlockInfoNeedPaddingAtStart = false;
+  private unityCN?: UnityCN;
 
   public constructor(
     private readonly header: BundleHeader,
@@ -127,6 +132,9 @@ export class Bundle {
     switch (signature) {
       case Signature.UNITY_FS:
         this.readHeader(r);
+        if (this.options?.unityCNKey) {
+          this.readUnityCN(r, this.options.unityCNKey);
+        }
         this.readBlocksInfoAndDirectory(r);
         this.files.push(...this.readFiles(this.readBlocks(r)));
         break;
@@ -165,6 +173,29 @@ export class Bundle {
     header.compressedBlocksInfoSize = r.nextUInt32BE();
     header.uncompressedBlocksInfoSize = r.nextUInt32BE();
     header.flags = r.nextUInt32BE();
+  }
+
+  private readUnityCN(r: BufferReader, key: string) {
+    let mask: ArchiveFlags;
+
+    const version = this.parseVersion(this.header.unityReversion);
+    if (
+      version[0] < 2020 || // 2020 and earlier
+      (version[0] === 2020 && version[1] === 3 && version[2] <= 34) || // 2020.3.34 and earlier
+      (version[0] === 2021 && version[1] === 3 && version[2] <= 2) || // 2021.3.2 and earlier
+      (version[0] === 2022 && version[1] === 3 && version[2] <= 1)
+    ) {
+      // 2022.3.1 and earlier
+      mask = ArchiveFlags.BLOCK_INFO_NEED_PADDING_AT_START;
+      this.hasBlockInfoNeedPaddingAtStart = false;
+    } else {
+      mask = ArchiveFlags.UNITY_CN_ENCRYPTION;
+      this.hasBlockInfoNeedPaddingAtStart = true;
+    }
+
+    if ((this.header.flags & mask) !== 0) {
+      this.unityCN = new UnityCN(r, key);
+    }
   }
 
   private readBlocksInfoAndDirectory(r: BufferReader) {
@@ -240,6 +271,14 @@ export class Bundle {
     }
 
     return files;
+  }
+
+  private parseVersion(str: string) {
+    return str
+      .replace(/\D/g, '.')
+      .split('.')
+      .filter(Boolean)
+      .map(v => parseInt(v));
   }
 }
 
