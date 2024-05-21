@@ -36,17 +36,17 @@ export class UnityCN {
     }
   }
 
+  // 太怪了，明明是加密但是作用是解密，到底是什么科技
   private decrypt(data: Buffer) {
-    const decipher = crypto.createDecipheriv('aes-128-ecb', this.key, null);
-    decipher.update(data);
-    return decipher.final();
+    const cipher = crypto.createCipheriv('aes-128-ecb', this.key, null);
+    return Buffer.concat([cipher.update(data), cipher.final()]);
   }
 
   private decryptKey(key: Buffer, data: Buffer) {
     key = this.decrypt(key);
-    const result = new Uint8Array(16);
-    for (let i = 0; i < 16; i++) {
-      result[i] = data[i] ^ key[i];
+    const result = Uint8Array.from(data);
+    for (let i = 0; i < 0x10; i++) {
+      result[i] ^= key[i];
     }
     return Buffer.from(result);
   }

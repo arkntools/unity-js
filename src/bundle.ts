@@ -118,7 +118,6 @@ export class Bundle {
   public readonly objectMap = new Map<string, AssetObject>();
   public containerMap?: Map<string, string>;
   private readonly blockInfos: StorageBlock[] = [];
-  private hasBlockInfoNeedPaddingAtStart = false;
   private unityCN?: UnityCN;
 
   public constructor(
@@ -165,10 +164,6 @@ export class Bundle {
   private readHeader(r: BufferReader) {
     const { header } = this;
 
-    if (header.version >= 7) {
-      throw new Error(`Unsupported bundle version: ${header.version}`);
-    }
-
     header.size = bufferReaderReadBigInt64BE(r);
     header.compressedBlocksInfoSize = r.nextUInt32BE();
     header.uncompressedBlocksInfoSize = r.nextUInt32BE();
@@ -187,10 +182,9 @@ export class Bundle {
     ) {
       // 2022.3.1 and earlier
       mask = ArchiveFlags.BLOCK_INFO_NEED_PADDING_AT_START;
-      this.hasBlockInfoNeedPaddingAtStart = false;
     } else {
       mask = ArchiveFlags.UNITY_CN_ENCRYPTION;
-      this.hasBlockInfoNeedPaddingAtStart = true;
+      throw new Error(`Unsupported unity reversion: ${this.header.unityReversion}`);
     }
 
     if ((this.header.flags & mask) !== 0) {
