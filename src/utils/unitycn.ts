@@ -61,10 +61,11 @@ export class UnityCN {
       this.subTable[((state.index >> 2) & 3) + 4] +
       this.subTable[state.index & 3] +
       this.subTable[((state.index >> 4) & 3) + 8] +
-      this.subTable[(state.index >> 6) + 12];
+      this.subTable[((state.index >> 6) & 3) + 12];
     bytes[state.offset] =
-      ((this.indexTable[bytes[state.offset] & 0xf] - b) & 0xf) |
-      (0x10 * (this.indexTable[bytes[state.offset] >> 4] - b));
+      (((this.indexTable[bytes[state.offset] & 0xf] - b) & 0xf) |
+        (0x10 * (this.indexTable[bytes[state.offset] >> 4] - b))) &
+      0xff;
     b = bytes[state.offset];
     state.offset++;
     state.index++;
@@ -73,11 +74,9 @@ export class UnityCN {
 
   public decryptBlock(bytes: Uint8Array, index: number) {
     const size = bytes.length;
-    for (
-      let offset = 0;
-      offset < size;
-      offset += this.decrypt(createUint8ArraySlice(bytes, offset), index++, size - offset)
-    );
+    for (let offset = 0; offset < size; ) {
+      offset += this.decrypt(createUint8ArraySlice(bytes, offset), index++, size - offset);
+    }
   }
 
   private decrypt(bytes: Uint8Array, index: number, remaining: number) {
