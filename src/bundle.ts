@@ -2,6 +2,7 @@ import { decompressLz4 } from '@arkntools/unity-js-tools';
 import BufferReader from 'buffer-reader';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
+import { alignReader } from './utils/buffer';
 import { UnityCN } from './utils/unitycn';
 import { unzipIfNeed } from './utils/zip';
 import { AssetType } from '.';
@@ -187,19 +188,18 @@ export class Bundle {
       throw new Error(`Unsupported unity reversion: ${this.header.unityReversion}`);
     }
 
-    if ((this.header.flags & mask) !== 0) {
+    if (this.header.flags & mask) {
       this.unityCN = new UnityCN(r, key);
     }
   }
 
   private readBlocksInfoAndDirectory(r: BufferReader) {
-    const { flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
-    if (
-      flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END ||
-      flags & ArchiveFlags.BLOCK_INFO_NEED_PADDING_AT_START
-    ) {
+    const { version, flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
+    if (flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END) {
       throw new Error(`Unsupported bundle flags: ${flags}`);
     }
+
+    if (version >= 7) alignReader(r, 16);
 
     const blockInfoBuffer = r.nextBuffer(compressedBlocksInfoSize);
     const compressionType = flags & ArchiveFlags.COMPRESSION_TYPE_MASK;
@@ -241,9 +241,14 @@ export class Bundle {
   private readBlocks(r: BufferReader) {
     const results: Buffer[] = [];
 
-    for (const { flags, compressedSize, uncompressedSize } of this.blockInfos) {
+    for (const [i, { flags, compressedSize, uncompressedSize }] of this.blockInfos.entries()) {
       const compressionType = flags & StorageBlockFlags.COMPRESSION_TYPE_MASK;
-      const compressedBuffer = r.nextBuffer(compressedSize);
+      let compressedBuffer = r.nextBuffer(compressedSize);
+      if (this.unityCN && flags & 0x100) {
+        const bytes = Uint8Array.from(compressedBuffer);
+        this.unityCN.decryptBlock(bytes, i);
+        compressedBuffer = Buffer.from(bytes);
+      }
       const uncompressedBuffer = decompressBuffer(
         compressedBuffer,
         compressionType,
