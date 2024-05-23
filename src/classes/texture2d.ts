@@ -1,10 +1,12 @@
 import BufferReader from 'buffer-reader';
 import Jimp from 'jimp';
-import { last, omit, once } from 'lodash';
+import { last } from 'lodash';
 import NestedError from 'nested-error-stacks';
 import { decodeTexture } from '../utils/decodeTexture';
+import { getJimpPNG } from '../utils/image';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
+import type { ObjectInfo } from './types';
 import { AssetType } from './types';
 
 export interface Texture2DResult {
@@ -20,26 +22,17 @@ interface StreamInfo {
   path: string;
 }
 
-export class Texture2D extends AssetBase<Texture2DResult> {
+export class Texture2D extends AssetBase {
   readonly type = AssetType.Texture2D;
+  readonly width: number;
+  readonly height: number;
+  readonly textureFormat: number;
+  readonly streamData?: StreamInfo;
+  private readonly imageData: Uint8Array;
 
-  get image() {
-    return this.read().image.clone();
-  }
-
-  get meta(): Omit<Texture2DResult, 'data'> {
-    return omit(this.read(), 'image');
-  }
-
-  load(): Promise<Readonly<Texture2DResult>> {
-    return this.handleResult();
-  }
-
-  private readonly read = once(() => {
+  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+    super(info, r);
     const { version } = this.info;
-    const r = this.info.getReader();
-    r.seek(this.info.bytesStart);
-    const name = r.nextAlignedString();
     if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 3)) {
       r.move(5);
       if (version[0] > 2020 || (version[0] === 2020 && version[1] >= 2)) {
@@ -47,11 +40,11 @@ export class Texture2D extends AssetBase<Texture2DResult> {
       }
       r.align(4);
     }
-    const width = r.nextInt32();
-    const height = r.nextInt32();
+    this.width = r.nextInt32();
+    this.height = r.nextInt32();
     r.move(4);
     if (version[0] >= 2020) r.move(4);
-    const format = r.nextInt32();
+    this.textureFormat = r.nextInt32();
     if (version[0] < 5 || (version[0] === 5 && version[1] < 2)) r.move(1);
     else r.move(4);
     if (version[0] > 2 || (version[0] === 2 && version[1] >= 6)) r.move(1);
@@ -70,21 +63,28 @@ export class Texture2D extends AssetBase<Texture2DResult> {
       r.nextBuffer(length);
       r.align(4);
     }
-    const size = r.nextInt32();
-    const streamInfo =
-      size === 0 && ((version[0] === 5 && version[1] >= 3) || version[0] > 5)
+    const dataSize = r.nextInt32();
+    this.streamData =
+      dataSize === 0 && ((version[0] === 5 && version[1] >= 3) || version[0] > 5)
         ? this.readStreamInfo(r)
         : undefined;
-    const data = streamInfo?.path ? this.readData(streamInfo) : r.nextBuffer(size);
-    const decodedData = this.decodeTexture(data, width, height, format, name);
-    const image = new Jimp({ data: decodedData, width, height });
-    return {
-      name,
-      width,
-      height,
-      image,
-    };
-  });
+    const data = this.streamData?.path ? this.readData(this.streamData) : r.nextBuffer(dataSize);
+    this.imageData = this.decodeTexture(
+      data,
+      this.width,
+      this.height,
+      this.textureFormat,
+      this.name,
+    );
+  }
+
+  getImage() {
+    return getJimpPNG(this.getImageJimp());
+  }
+
+  getImageJimp() {
+    return new Jimp({ data: this.imageData, width: this.width, height: this.height });
+  }
 
   private readTextureSetting(r: BufferReaderExtended) {
     const { version } = this.info;
@@ -119,12 +119,4 @@ export class Texture2D extends AssetBase<Texture2DResult> {
       throw new NestedError(`Decode texture for "${name}" failed.`, error);
     }
   }
-
-  private readonly handleResult = once(async () => {
-    const { image, ...rest } = this.read();
-    return {
-      ...rest,
-      data: await image.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG),
-    };
-  });
 }

@@ -7,4 +7,5 @@ export type { AssetObject } from './classes/index';
 export type * from './classes/textAsset';
 export type * from './classes/texture2d';
 export type * from './classes/sprite';
+export type * from './classes/spriteAtlas';
 export type * from './classes/assetBundle';

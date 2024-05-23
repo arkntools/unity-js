@@ -1,5 +1,6 @@
-import { once } from 'lodash';
+import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
+import type { ObjectInfo } from './types';
 import { AssetType } from './types';
 
 export interface TextAssetResult {
@@ -7,19 +8,13 @@ export interface TextAssetResult {
   data: Buffer;
 }
 
-export class TextAsset extends AssetBase<TextAssetResult> {
+export class TextAsset extends AssetBase {
   readonly type = AssetType.TextAsset;
+  readonly data: Buffer;
 
-  async load(): Promise<Readonly<TextAssetResult>> {
-    return this.read();
-  }
-
-  private readonly read = once(() => {
-    const r = this.info.getReader();
-    r.seek(this.info.bytesStart);
-    const name = r.nextAlignedString();
+  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+    super(info, r);
     const length = r.nextInt32();
-    const data = r.nextBuffer(length);
-    return { name, data };
-  });
+    this.data = r.nextBuffer(length);
+  }
 }

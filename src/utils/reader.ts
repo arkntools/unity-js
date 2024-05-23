@@ -11,6 +11,8 @@ interface ExtendedMethods {
   setEndianness: (e: number) => void;
   align: (size: number) => void;
   nextAlignedString: () => string;
+  nextAlignedStringArray: () => string[];
+  nextBoolean: () => boolean;
   nextInt64LE: () => bigint;
   nextInt64BE: () => bigint;
   nextInt64: () => bigint;
@@ -60,6 +62,15 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
       fns.align(4);
       return result;
     },
+    nextAlignedStringArray: () => {
+      const strings: string[] = [];
+      const length = re.nextInt32();
+      for (let i = 0; i < length; i++) {
+        strings.push(re.nextAlignedString());
+      }
+      return strings;
+    },
+    nextBoolean: () => Boolean(r.nextUInt8()),
     nextInt64LE: () => r.nextBuffer(8).readBigInt64LE(),
     nextInt64BE: () => r.nextBuffer(8).readBigInt64BE(),
     nextInt64: () => (endianness ? fns.nextInt64BE() : fns.nextInt64LE()),

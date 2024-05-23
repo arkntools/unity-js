@@ -154,10 +154,19 @@ export class Bundle {
       });
 
     if (assetBundle) {
-      try {
-        this.containerMap = (await assetBundle.load()).containerMap;
-      } catch (error) {
-        console.error('Read container error:', error);
+      this.containerMap = assetBundle.containerMap;
+    }
+
+    for (const obj of this.objectMap.values()) {
+      if (obj.type !== AssetType.SpriteAtlas) continue;
+      const { renderDataMap, packedSprites } = obj;
+      if (!renderDataMap.size) continue;
+      for (const packedSprite of packedSprites) {
+        const sprite = packedSprite.object;
+        if (!sprite) continue;
+        if (sprite.spriteAtlas?.isNull) {
+          sprite.spriteAtlas.set(obj);
+        }
       }
     }
   }
