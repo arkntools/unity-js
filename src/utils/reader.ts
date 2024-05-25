@@ -1,5 +1,6 @@
 import BufferReader from 'buffer-reader';
 import type { RectF32, Vector2, Vector3, Vector4 } from '../types';
+import { alignReader } from './buffer';
 
 type BufferReaderReadFn = Extract<keyof BufferReader, `${string}BE`> extends `${infer Prefix}BE`
   ? Prefix
@@ -10,6 +11,8 @@ interface ExtendedMethods {
   setEndianness: (e: number) => void;
   align: (size: number) => void;
   nextAlignedString: () => string;
+  nextAlignedStringArray: () => string[];
+  nextBoolean: () => boolean;
   nextInt64LE: () => bigint;
   nextInt64BE: () => bigint;
   nextInt64: () => bigint;
@@ -51,11 +54,7 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
       return r;
     },
     align: (size: number) => {
-      const before = r.tell();
-      const remain = before % size;
-      const after = remain === 0 ? before : before - remain + size;
-      if (after > data.length) throw new Error('Align error');
-      r.seek(after);
+      alignReader(r, size);
     },
     nextAlignedString: () => {
       const length = re.nextInt32();
@@ -63,6 +62,15 @@ export const createExtendedBufferReader = (data: Buffer): BufferReaderExtended =
       fns.align(4);
       return result;
     },
+    nextAlignedStringArray: () => {
+      const strings: string[] = [];
+      const length = re.nextInt32();
+      for (let i = 0; i < length; i++) {
+        strings.push(re.nextAlignedString());
+      }
+      return strings;
+    },
+    nextBoolean: () => Boolean(r.nextUInt8()),
     nextInt64LE: () => r.nextBuffer(8).readBigInt64LE(),
     nextInt64BE: () => r.nextBuffer(8).readBigInt64BE(),
     nextInt64: () => (endianness ? fns.nextInt64BE() : fns.nextInt64LE()),

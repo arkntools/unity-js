@@ -1,12 +1,15 @@
 import { decompressLz4 } from '@arkntools/unity-js-tools';
 import BufferReader from 'buffer-reader';
+import type Jimp from 'jimp';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
+import { alignReader } from './utils/buffer';
+import { UnityCN } from './utils/unitycn';
 import { unzipIfNeed } from './utils/zip';
 import { AssetType } from '.';
 import type { AssetBundle, Texture2D } from '.';
 
-interface BundleHeader {
+export interface BundleHeader {
   signature: string;
   version: number;
   unityVersion: string;
@@ -49,6 +52,7 @@ enum ArchiveFlags {
   BLOCKS_INFO_AT_THE_END = 0x80,
   OLD_WEB_PLUGIN_COMPATIBILITY = 0x100,
   BLOCK_INFO_NEED_PADDING_AT_START = 0x200,
+  UNITY_CN_ENCRYPTION = 0x400,
 }
 
 enum CompressionType {
@@ -72,61 +76,51 @@ enum FileType {
 export interface BundleLoadOptions {
   /** 有些 Sprite 可能不会给出 AlphaTexture 的 PathID，可以传入自定义函数去寻找 */
   findAlphaTexture?: (texture: Texture2D, assets: Texture2D[]) => Texture2D | undefined;
+  unityCNKey?: string;
 }
 
-export class UnityAssetBundle {
-  private constructor(private readonly bundle: Bundle) {}
-
-  get objects() {
-    return Array.from(this.bundle.objectMap.values());
-  }
+export class Bundle {
+  public readonly header: BundleHeader;
+  public readonly nodes: StorageNode[] = [];
+  public readonly files: Buffer[] = [];
+  public readonly objectMap = new Map<string, AssetObject>();
+  public readonly objects: AssetObject[];
+  public readonly textureMixCache = new Map<string, Jimp>();
+  public readonly containerMap?: Map<string, string>;
+  private readonly blockInfos: StorageBlock[] = [];
+  private unityCN?: UnityCN;
 
   static async load(data: Buffer, options?: BundleLoadOptions) {
     const r = new BufferReader(await unzipIfNeed(data));
+    return new Bundle(r, options);
+  }
 
+  private constructor(
+    r: BufferReader,
+    public readonly options?: BundleLoadOptions,
+  ) {
     const signature = r.nextStringZero();
     const version = r.nextUInt32BE();
     const unityVersion = r.nextStringZero();
     const unityReversion = r.nextStringZero();
 
-    const bundle = new Bundle(
-      {
-        signature,
-        version,
-        unityVersion,
-        unityReversion,
-        size: 0,
-        compressedBlocksInfoSize: 0,
-        uncompressedBlocksInfoSize: 0,
-        flags: 0,
-      },
-      options,
-    );
-
-    await bundle.read(r);
-
-    return new UnityAssetBundle(bundle);
-  }
-}
-
-export class Bundle {
-  public readonly nodes: StorageNode[] = [];
-  public readonly files: Buffer[] = [];
-  public readonly objectMap = new Map<string, AssetObject>();
-  public containerMap?: Map<string, string>;
-  private readonly blockInfos: StorageBlock[] = [];
-
-  public constructor(
-    private readonly header: BundleHeader,
-    public readonly options?: BundleLoadOptions,
-  ) {}
-
-  public async read(r: BufferReader) {
-    const { signature } = this.header;
+    this.header = {
+      signature,
+      version,
+      unityVersion,
+      unityReversion,
+      size: 0,
+      compressedBlocksInfoSize: 0,
+      uncompressedBlocksInfoSize: 0,
+      flags: 0,
+    };
 
     switch (signature) {
       case Signature.UNITY_FS:
         this.readHeader(r);
+        if (this.options?.unityCNKey) {
+          this.readUnityCN(r, this.options.unityCNKey);
+        }
         this.readBlocksInfoAndDirectory(r);
         this.files.push(...this.readFiles(this.readBlocks(r)));
         break;
@@ -144,12 +138,22 @@ export class Bundle {
         this.objectMap.set(obj.pathId, obj);
         if (obj.type === AssetType.AssetBundle) assetBundle = obj;
       });
+    this.objects = Array.from(this.objectMap.values());
 
     if (assetBundle) {
-      try {
-        this.containerMap = (await assetBundle.load()).containerMap;
-      } catch (error) {
-        console.error('Read container error:', error);
+      this.containerMap = assetBundle.containerMap;
+    }
+
+    for (const obj of this.objects) {
+      if (obj.type !== AssetType.SpriteAtlas) continue;
+      const { renderDataMap, packedSprites } = obj;
+      if (!renderDataMap.size) continue;
+      for (const packedSprite of packedSprites) {
+        const sprite = packedSprite.object;
+        if (!sprite) continue;
+        if (sprite.spriteAtlas?.isNull) {
+          sprite.spriteAtlas.set(obj);
+        }
       }
     }
   }
@@ -157,24 +161,41 @@ export class Bundle {
   private readHeader(r: BufferReader) {
     const { header } = this;
 
-    if (header.version >= 7) {
-      throw new Error(`Unsupported bundle version: ${header.version}`);
-    }
-
     header.size = bufferReaderReadBigInt64BE(r);
     header.compressedBlocksInfoSize = r.nextUInt32BE();
     header.uncompressedBlocksInfoSize = r.nextUInt32BE();
     header.flags = r.nextUInt32BE();
   }
 
-  private readBlocksInfoAndDirectory(r: BufferReader) {
-    const { flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
+  private readUnityCN(r: BufferReader, key: string) {
+    let mask: ArchiveFlags;
+
+    const version = this.parseVersion(this.header.unityReversion);
     if (
-      flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END ||
-      flags & ArchiveFlags.BLOCK_INFO_NEED_PADDING_AT_START
+      version[0] < 2020 || // 2020 and earlier
+      (version[0] === 2020 && version[1] === 3 && version[2] <= 34) || // 2020.3.34 and earlier
+      (version[0] === 2021 && version[1] === 3 && version[2] <= 2) || // 2021.3.2 and earlier
+      (version[0] === 2022 && version[1] === 3 && version[2] <= 1)
     ) {
+      // 2022.3.1 and earlier
+      mask = ArchiveFlags.BLOCK_INFO_NEED_PADDING_AT_START;
+    } else {
+      mask = ArchiveFlags.UNITY_CN_ENCRYPTION;
+      throw new Error(`Unsupported unity reversion: ${this.header.unityReversion}`);
+    }
+
+    if (this.header.flags & mask) {
+      this.unityCN = new UnityCN(r, key);
+    }
+  }
+
+  private readBlocksInfoAndDirectory(r: BufferReader) {
+    const { version, flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
+    if (flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END) {
       throw new Error(`Unsupported bundle flags: ${flags}`);
     }
+
+    if (version >= 7) alignReader(r, 16);
 
     const blockInfoBuffer = r.nextBuffer(compressedBlocksInfoSize);
     const compressionType = flags & ArchiveFlags.COMPRESSION_TYPE_MASK;
@@ -216,9 +237,14 @@ export class Bundle {
   private readBlocks(r: BufferReader) {
     const results: Buffer[] = [];
 
-    for (const { flags, compressedSize, uncompressedSize } of this.blockInfos) {
+    for (const [i, { flags, compressedSize, uncompressedSize }] of this.blockInfos.entries()) {
       const compressionType = flags & StorageBlockFlags.COMPRESSION_TYPE_MASK;
-      const compressedBuffer = r.nextBuffer(compressedSize);
+      let compressedBuffer = r.nextBuffer(compressedSize);
+      if (this.unityCN && flags & 0x100) {
+        const bytes = Uint8Array.from(compressedBuffer);
+        this.unityCN.decryptBlock(bytes, i);
+        compressedBuffer = Buffer.from(bytes);
+      }
       const uncompressedBuffer = decompressBuffer(
         compressedBuffer,
         compressionType,
@@ -240,6 +266,14 @@ export class Bundle {
     }
 
     return files;
+  }
+
+  private parseVersion(str: string) {
+    return str
+      .replace(/\D/g, '.')
+      .split('.')
+      .filter(Boolean)
+      .map(v => parseInt(v));
   }
 }
 

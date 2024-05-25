@@ -1,26 +1,19 @@
+import type { BufferReaderExtended } from '../utils/reader';
 import type { AssetType, ObjectInfo } from './types';
 
-export abstract class AssetBase<T> {
+export abstract class AssetBase {
   abstract readonly type: AssetType;
   readonly name: string;
 
-  constructor(protected readonly info: ObjectInfo, readName = true) {
-    if (readName) {
-      const r = info.getReader();
-      r.seek(info.bytesStart);
-      this.name = r.nextAlignedString();
-    } else {
-      this.name = '';
-    }
+  constructor(
+    protected readonly info: ObjectInfo,
+    r: BufferReaderExtended,
+  ) {
+    r.seek(info.bytesStart);
+    this.name = r.nextAlignedString();
   }
 
   get pathId() {
     return this.info.pathId;
   }
-
-  get container() {
-    return this.info.bundle.containerMap?.get(this.pathId);
-  }
-
-  abstract load(...args: any[]): Promise<Readonly<T>>;
 }

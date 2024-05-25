@@ -15,11 +15,11 @@ import {
   decodeEtc1,
   decodeEtc2Rgb,
   decodeEtc2Rgba1,
-  decodeEtc2Rgba8,
   decodePvrtc2bpp,
   decodePvrtc4bpp,
 } from '@arkntools/unity-js-tools';
 import { TextureFormat as TF } from '../classes/types';
+import { decodeEtc2Rgba8 } from './etc2';
 
 type DecodeFunction = (data: Uint8Array, width: number, height: number) => Uint8Array;
 
@@ -70,8 +70,15 @@ const funcMap: Partial<Record<TF, DecodeFunction>> = {
   [TF.PVRTC_RGBA4]: decodePvrtc4bpp,
 };
 
+const bgra2rgba = (data: Uint8Array) => {
+  for (let i = 0; i + 3 < data.length; i += 4) {
+    [data[i], data[i + 2]] = [data[i + 2], data[i]];
+  }
+  return data;
+};
+
 export const decodeTexture = (data: Uint8Array, width: number, height: number, format: TF) => {
   const decodeFunc = funcMap[format];
   if (!decodeFunc) throw new Error(`Texture2d format "${format}" decoder is not implemented.`);
-  return decodeFunc(data, width, height);
+  return bgra2rgba(decodeFunc(data, width, height));
 };
