@@ -1,11 +1,12 @@
-import { UnityAssetBundle } from './bundle';
-export const loadAssetBundle = UnityAssetBundle.load;
+import { Bundle } from './bundle';
+export * from './bundle';
+export const loadAssetBundle = Bundle.load;
 
 export { AssetType } from './classes/types';
 export type { AssetObject } from './classes/index';
 
-export type * from './classes/textAsset';
-export type * from './classes/texture2d';
-export type * from './classes/sprite';
-export type * from './classes/spriteAtlas';
-export type * from './classes/assetBundle';
+export * from './classes/textAsset';
+export * from './classes/texture2d';
+export * from './classes/sprite';
+export * from './classes/spriteAtlas';
+export * from './classes/assetBundle';

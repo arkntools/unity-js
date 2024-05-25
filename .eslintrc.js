@@ -10,6 +10,8 @@ const offTsRules = [
   'no-explicit-any',
   'no-empty-function',
   'no-confusing-void-expression',
+  'no-unsafe-argument',
+  'unbound-method',
 ];
 
 module.exports = {
@@ -19,7 +21,7 @@ module.exports = {
   },
   parser: '@typescript-eslint/parser',
   extends: [
-    'standard-with-typescript',
+    'love',
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:import/recommended',

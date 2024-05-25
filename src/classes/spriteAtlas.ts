@@ -1,3 +1,4 @@
+import { SpriteSettings } from '..';
 import type { Sprite, Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
 import type { BufferReaderExtended } from '../utils/reader';
@@ -42,21 +43,19 @@ export class SpriteAtlas extends AssetBase {
   }
 
   getImage(renderDataKey: string) {
-    const spriteAtlasData = this.renderDataMap.get(renderDataKey);
-    if (!spriteAtlasData) return;
-    const texture = spriteAtlasData.texture.object;
-    // if (!texture) return;
+    return this.renderDataMap.get(renderDataKey)?.getImage();
   }
 }
 
-class SpriteAtlasData {
-  texture: PPtr<Texture2D>;
-  alphaTexture: PPtr<Texture2D>;
-  textureRect: RectF32;
-  textureRectOffset: Vector2;
-  atlasRectOffset?: Vector2;
-  uvTransform: Vector4;
-  downscaleMultiplier: number;
+export class SpriteAtlasData {
+  readonly texture: PPtr<Texture2D>;
+  readonly alphaTexture: PPtr<Texture2D>;
+  readonly textureRect: RectF32;
+  readonly textureRectOffset: Vector2;
+  readonly atlasRectOffset?: Vector2;
+  readonly uvTransform: Vector4;
+  readonly downscaleMultiplier: number;
+  readonly settingsRaw: SpriteSettings;
 
   constructor(info: ObjectInfo, r: BufferReaderExtended) {
     const { version } = info;
@@ -69,10 +68,15 @@ class SpriteAtlasData {
     }
     this.uvTransform = r.nextVector4();
     this.downscaleMultiplier = r.nextFloat();
-    r.move(4); // SpriteSettings
+    this.settingsRaw = new SpriteSettings(r);
     if (version[0] > 2020 || (version[0] === 2020 && version[1] >= 2)) {
       const size = r.nextUInt32();
       if (size > 0) throw new Error('SecondarySpriteTexture is not implemented.');
     }
+  }
+
+  public getImage() {
+    const textureObj = this.texture.object;
+    return textureObj?.getTransformedImageJimp(this, this.alphaTexture.object);
   }
 }

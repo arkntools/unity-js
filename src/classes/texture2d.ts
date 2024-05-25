@@ -2,8 +2,10 @@ import BufferReader from 'buffer-reader';
 import Jimp from 'jimp';
 import { last } from 'lodash';
 import NestedError from 'nested-error-stacks';
+import { SpritePackingMode, SpritePackingRotation, type SpriteSettings } from '..';
+import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
-import { getJimpPNG } from '../utils/image';
+import { getJimpPNG, simpleRotate } from '../utils/image';
 import type { BufferReaderExtended } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ObjectInfo } from './types';
@@ -16,10 +18,16 @@ export interface Texture2DResult {
   data: Buffer;
 }
 
-interface StreamInfo {
+export interface StreamInfo {
   offset: number;
   size: number;
   path: string;
+}
+
+export interface TextureTransformedOptions {
+  textureRect: RectF32;
+  downscaleMultiplier?: number;
+  settingsRaw: SpriteSettings;
 }
 
 export class Texture2D extends AssetBase {
@@ -28,7 +36,7 @@ export class Texture2D extends AssetBase {
   readonly height: number;
   readonly textureFormat: number;
   readonly streamData?: StreamInfo;
-  private readonly imageData: Uint8Array;
+  private readonly image: TextureDecoder;
 
   constructor(info: ObjectInfo, r: BufferReaderExtended) {
     super(info, r);
@@ -69,13 +77,7 @@ export class Texture2D extends AssetBase {
         ? this.readStreamInfo(r)
         : undefined;
     const data = this.streamData?.path ? this.readData(this.streamData) : r.nextBuffer(dataSize);
-    this.imageData = this.decodeTexture(
-      data,
-      this.width,
-      this.height,
-      this.textureFormat,
-      this.name,
-    );
+    this.image = new TextureDecoder(this, data);
   }
 
   getImage() {
@@ -83,7 +85,70 @@ export class Texture2D extends AssetBase {
   }
 
   getImageJimp() {
-    return new Jimp({ data: this.imageData, width: this.width, height: this.height });
+    return this.getImageJimpRaw().flip(false, true);
+  }
+
+  getTransformedImageJimp(
+    { downscaleMultiplier = 1, textureRect, settingsRaw }: TextureTransformedOptions,
+    alphaTexture?: Texture2D,
+  ) {
+    const img = alphaTexture ? this.getMixJimp(alphaTexture) : this.getImageJimpRaw();
+
+    if (downscaleMultiplier > 0 && downscaleMultiplier !== 1) {
+      img.resize(img.getWidth() / downscaleMultiplier, img.getHeight() / downscaleMultiplier);
+    }
+
+    img.crop(textureRect.x, textureRect.y, textureRect.width, textureRect.height);
+
+    if (settingsRaw.packed === 1) {
+      switch (settingsRaw.packingRotation) {
+        case SpritePackingRotation.FlipHorizontal:
+          img.flip(true, false);
+          break;
+        case SpritePackingRotation.FlipVertical:
+          img.flip(false, true);
+          break;
+        case SpritePackingRotation.Rotate180:
+          simpleRotate(img, 180);
+          break;
+        case SpritePackingRotation.Rotate90:
+          simpleRotate(img, 270);
+          break;
+      }
+    }
+
+    if (settingsRaw.packingMode === SpritePackingMode.Tight) {
+      throw new Error('SpritePackingMode.Tight not implemented.');
+    }
+
+    img.flip(false, true);
+
+    return img;
+  }
+
+  private getImageJimpRaw() {
+    return new Jimp({ data: this.image.data, width: this.width, height: this.height });
+  }
+
+  private getMixJimp(alphaTexture: Texture2D) {
+    const cacheMap = this.info.bundle.textureMixCache;
+    const key = `${this.pathId},${alphaTexture.pathId}`;
+    const cached = cacheMap.get(key);
+    if (cached) return cached.clone();
+
+    const rgb = this.getImageJimpRaw();
+    const alpha = alphaTexture.getImageJimpRaw();
+
+    if (this.width !== alphaTexture.width || this.height !== alphaTexture.height) {
+      alpha.resize(this.width, this.height);
+    }
+
+    rgb.scan(0, 0, this.width, this.height, function (x, y, idx) {
+      this.bitmap.data[idx + 3] = alpha.bitmap.data[idx];
+    });
+    cacheMap.set(key, rgb);
+
+    return rgb.clone();
   }
 
   private readTextureSetting(r: BufferReaderExtended) {
@@ -111,8 +176,40 @@ export class Texture2D extends AssetBase {
     r.seek(streamInfo.offset);
     return r.nextBuffer(streamInfo.size);
   }
+}
 
-  private decodeTexture(data: Buffer, width: number, height: number, format: number, name: string) {
+class TextureDecoder {
+  private decoded = false;
+
+  constructor(
+    private readonly texture: Texture2D,
+    private rawData: Uint8Array,
+  ) {}
+
+  get data() {
+    this.decodeImageData();
+    return this.rawData;
+  }
+
+  private decodeImageData() {
+    if (this.decoded) return;
+    this.rawData = TextureDecoder.decodeTexture(
+      this.rawData,
+      this.texture.width,
+      this.texture.height,
+      this.texture.textureFormat,
+      this.texture.name,
+    );
+    this.decoded = true;
+  }
+
+  private static decodeTexture(
+    data: Uint8Array,
+    width: number,
+    height: number,
+    format: number,
+    name: string,
+  ) {
     try {
       return decodeTexture(data, width, height, format);
     } catch (error: any) {

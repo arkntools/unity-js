@@ -21,8 +21,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
   const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab'));
   for (const obj of bundle.objects) {
     if (obj.type === AssetType.TextAsset) {
-      const asset = await obj.load();
-      fs.writeFileSync(`${asset.name}.bytes`, asset.data);
+      fs.writeFileSync(`${obj.name}.bytes`, obj.data);
       break;
     }
   }
@@ -32,8 +31,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
   const bundle = await loadAssetBundle(fs.readFileSync('spritepack_ui_char_avatar_h1_0.ab'));
   for (const obj of bundle.objects) {
     if (obj.type === AssetType.Sprite && obj.name === 'char_002_amiya') {
-      const asset = await obj.load();
-      fs.writeFileSync(`${asset.name}.png`, asset.data);
+      fs.writeFileSync(`${obj.name}.png`, await obj.getImage()!);
       break;
     }
   }
@@ -47,8 +45,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
   });
   for (const obj of bundle.objects) {
     if (obj.type === AssetType.Sprite && obj.name === 'char_1028_texas2_1') {
-      const asset = await obj.load();
-      fs.writeFileSync(`${asset.name}.png`, asset.data);
+      fs.writeFileSync(`${obj.name}.png`, await obj.getImage()!);
       break;
     }
   }

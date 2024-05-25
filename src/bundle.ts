@@ -1,5 +1,6 @@
 import { decompressLz4 } from '@arkntools/unity-js-tools';
 import BufferReader from 'buffer-reader';
+import type Jimp from 'jimp';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
 import { alignReader } from './utils/buffer';
@@ -8,7 +9,7 @@ import { unzipIfNeed } from './utils/zip';
 import { AssetType } from '.';
 import type { AssetBundle, Texture2D } from '.';
 
-interface BundleHeader {
+export interface BundleHeader {
   signature: string;
   version: number;
   unityVersion: string;
@@ -78,56 +79,41 @@ export interface BundleLoadOptions {
   unityCNKey?: string;
 }
 
-export class UnityAssetBundle {
-  private constructor(private readonly bundle: Bundle) {}
-
-  get objects() {
-    return Array.from(this.bundle.objectMap.values());
-  }
+export class Bundle {
+  public readonly header: BundleHeader;
+  public readonly nodes: StorageNode[] = [];
+  public readonly files: Buffer[] = [];
+  public readonly objectMap = new Map<string, AssetObject>();
+  public readonly objects: AssetObject[];
+  public readonly textureMixCache = new Map<string, Jimp>();
+  public readonly containerMap?: Map<string, string>;
+  private readonly blockInfos: StorageBlock[] = [];
+  private unityCN?: UnityCN;
 
   static async load(data: Buffer, options?: BundleLoadOptions) {
     const r = new BufferReader(await unzipIfNeed(data));
+    return new Bundle(r, options);
+  }
 
+  private constructor(
+    r: BufferReader,
+    public readonly options?: BundleLoadOptions,
+  ) {
     const signature = r.nextStringZero();
     const version = r.nextUInt32BE();
     const unityVersion = r.nextStringZero();
     const unityReversion = r.nextStringZero();
 
-    const bundle = new Bundle(
-      {
-        signature,
-        version,
-        unityVersion,
-        unityReversion,
-        size: 0,
-        compressedBlocksInfoSize: 0,
-        uncompressedBlocksInfoSize: 0,
-        flags: 0,
-      },
-      options,
-    );
-
-    await bundle.read(r);
-
-    return new UnityAssetBundle(bundle);
-  }
-}
-
-export class Bundle {
-  public readonly nodes: StorageNode[] = [];
-  public readonly files: Buffer[] = [];
-  public readonly objectMap = new Map<string, AssetObject>();
-  public containerMap?: Map<string, string>;
-  private readonly blockInfos: StorageBlock[] = [];
-  private unityCN?: UnityCN;
-
-  public constructor(
-    private readonly header: BundleHeader,
-    public readonly options?: BundleLoadOptions,
-  ) {}
-
-  public async read(r: BufferReader) {
-    const { signature } = this.header;
+    this.header = {
+      signature,
+      version,
+      unityVersion,
+      unityReversion,
+      size: 0,
+      compressedBlocksInfoSize: 0,
+      uncompressedBlocksInfoSize: 0,
+      flags: 0,
+    };
 
     switch (signature) {
       case Signature.UNITY_FS:
@@ -152,12 +138,13 @@ export class Bundle {
         this.objectMap.set(obj.pathId, obj);
         if (obj.type === AssetType.AssetBundle) assetBundle = obj;
       });
+    this.objects = Array.from(this.objectMap.values());
 
     if (assetBundle) {
       this.containerMap = assetBundle.containerMap;
     }
 
-    for (const obj of this.objectMap.values()) {
+    for (const obj of this.objects) {
       if (obj.type !== AssetType.SpriteAtlas) continue;
       const { renderDataMap, packedSprites } = obj;
       if (!renderDataMap.size) continue;
