@@ -2,7 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/@arkntools/unity-js?style=flat-square)](https://www.npmjs.com/package/@arkntools/unity-js)
 
-Unity ab 解包的 js 实现，抄自 [K0lb3/UnityPy](https://github.com/K0lb3/UnityPy) & [yuanyan3060/unity-rs](https://github.com/yuanyan3060/unity-rs)
+Unity AssetBundle 解包的 js 实现
 
 仅做了项目所需的最低限度实现，如果需要较完整的功能建议还是去用现成的
 
@@ -11,7 +11,7 @@ Unity ab 解包的 js 实现，抄自 [K0lb3/UnityPy](https://github.com/K0lb3/U
 - TextAsset
 - Texture2d
 - Sprite
-- AssetBundle
+- SpriteAtlas
 
 ```js
 import fs from 'fs';
@@ -51,3 +51,9 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
   }
 })();
 ```
+
+## 参考
+
+- [RazTools/Studio](https://github.com/RazTools/Studio)
+- [K0lb3/UnityPy](https://github.com/K0lb3/UnityPy)
+- [yuanyan3060/unity-rs](https://github.com/yuanyan3060/unity-rs)
