@@ -1,4 +1,4 @@
-import type { BufferReaderExtended } from '../utils/reader';
+import type { ArrayBufferReader } from '../utils/reader';
 import type { ObjectInfo } from './types';
 import type { AssetObject } from '.';
 
@@ -8,10 +8,10 @@ export class PPtr<T extends AssetObject = AssetObject> {
 
   constructor(
     private readonly info: ObjectInfo,
-    r: BufferReaderExtended,
+    r: ArrayBufferReader,
   ) {
-    this.fileId = r.nextInt32();
-    this.pathId = info.assetVersion < 14 ? String(r.nextInt32()) : r.nextInt64String();
+    this.fileId = r.readInt32();
+    this.pathId = String(info.assetVersion < 14 ? r.readInt32() : r.readInt64());
   }
 
   get object() {

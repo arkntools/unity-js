@@ -3,6 +3,7 @@ export * from './bundle';
 export const loadAssetBundle = Bundle.load;
 
 export * from './utils/image';
+export * from './utils/reader';
 
 export { AssetType } from './classes/types';
 export type { AssetObject } from './classes/index';

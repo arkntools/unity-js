@@ -1,6 +1,6 @@
-import crypto from 'crypto';
-import type BufferReader from 'buffer-reader';
-import { createUint8ArraySlice, toUint4Array } from './buffer';
+import { ModeOfOperation } from 'aes-js';
+import { bufferToString, hexToUInt8Array, toUInt4Array } from './buffer';
+import type { ArrayBufferReader } from './reader';
 
 interface DecryptState {
   offset: number;
@@ -9,30 +9,32 @@ interface DecryptState {
 
 const SIGNATURE = '#$unity3dchina!@';
 
+const AesEcb = ModeOfOperation.ecb;
+
 export class UnityCN {
-  private readonly key: Buffer;
+  private readonly key: Uint8Array;
   private readonly indexTable: Uint8Array;
   private readonly subTable = new Uint8Array(0x10);
 
-  public constructor(r: BufferReader, keyHex: string) {
-    this.key = Buffer.from(keyHex, 'hex');
+  public constructor(r: ArrayBufferReader, keyHex: string) {
+    this.key = hexToUInt8Array(keyHex);
 
     r.move(4);
 
-    const infoBytes = r.nextBuffer(0x10);
-    const infoKey = r.nextBuffer(0x10);
+    const infoBytes = r.readBuffer(0x10);
+    const infoKey = r.readBuffer(0x10);
     r.move(1);
 
-    const signatureBytes = r.nextBuffer(0x10);
-    const signatureKey = r.nextBuffer(0x10);
+    const signatureBytes = r.readBuffer(0x10);
+    const signatureKey = r.readBuffer(0x10);
     r.move(1);
 
-    const signature = this.decryptKey(signatureKey, signatureBytes).toString('utf8');
+    const signature = bufferToString(this.decryptKey(signatureKey, signatureBytes));
     if (signature !== SIGNATURE) {
       throw new Error(`Invalid signature, expected "${SIGNATURE}" but got "${signature}"`);
     }
 
-    const info = toUint4Array(this.decryptKey(infoKey, infoBytes));
+    const info = toUInt4Array(this.decryptKey(infoKey, infoBytes));
     this.indexTable = info.subarray(0, 0x10);
     const sub = info.subarray(0x10, 0x20);
     for (let i = 0; i < sub.length; i++) {
@@ -42,44 +44,44 @@ export class UnityCN {
   }
 
   // 太怪了，明明是加密但是作用是解密，到底是什么科技
-  private encryptWithKey(data: Buffer) {
-    const cipher = crypto.createCipheriv('aes-128-ecb', this.key, null);
-    return Buffer.concat([cipher.update(data), cipher.final()]);
+  private encryptWithKey(data: ArrayBuffer) {
+    const cipher = new AesEcb(this.key);
+    return cipher.encrypt(new Uint8Array(data));
   }
 
-  private decryptKey(key: Buffer, data: Buffer) {
-    key = this.encryptWithKey(key);
-    const result = Uint8Array.from(data);
+  private decryptKey(key: ArrayBuffer, data: ArrayBuffer) {
+    const encryptedKey = this.encryptWithKey(key);
+    const result = new Uint8Array(data);
     for (let i = 0; i < 0x10; i++) {
-      result[i] ^= key[i];
+      result[i] ^= encryptedKey[i];
     }
-    return Buffer.from(result);
+    return result;
   }
 
-  private decryptByte(bytes: Uint8Array, state: DecryptState) {
-    let b =
+  private decryptByte(bytes: DataView, state: DecryptState) {
+    const b =
       this.subTable[((state.index >> 2) & 3) + 4] +
       this.subTable[state.index & 3] +
       this.subTable[((state.index >> 4) & 3) + 8] +
       this.subTable[((state.index >> 6) & 3) + 12];
-    bytes[state.offset] =
-      (((this.indexTable[bytes[state.offset] & 0xf] - b) & 0xf) |
-        (0x10 * (this.indexTable[bytes[state.offset] >> 4] - b))) &
+    const curVal = bytes.getUint8(state.offset);
+    const newVal =
+      (((this.indexTable[curVal & 0xf] - b) & 0xf) | (0x10 * (this.indexTable[curVal >> 4] - b))) &
       0xff;
-    b = bytes[state.offset];
+    bytes.setUint8(state.offset, newVal);
     state.offset++;
     state.index++;
-    return b;
+    return newVal;
   }
 
-  public decryptBlock(bytes: Uint8Array, index: number) {
-    const size = bytes.length;
+  public decryptBlock(bytes: ArrayBuffer, index: number) {
+    const size = bytes.byteLength;
     for (let offset = 0; offset < size; ) {
-      offset += this.decrypt(createUint8ArraySlice(bytes, offset), index++, size - offset);
+      offset += this.decrypt(new DataView(bytes, offset), index++, size - offset);
     }
   }
 
-  private decrypt(bytes: Uint8Array, index: number, remaining: number) {
+  private decrypt(bytes: DataView, index: number, remaining: number) {
     const state: DecryptState = {
       offset: 0,
       index,

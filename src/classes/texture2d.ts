@@ -1,4 +1,3 @@
-import BufferReader from 'buffer-reader';
 import Jimp from 'jimp';
 import { last } from 'lodash';
 import NestedError from 'nested-error-stacks';
@@ -6,17 +5,10 @@ import { SpritePackingMode, SpritePackingRotation, type SpriteSettings } from '.
 import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
 import { getJimpPNG, simpleRotate } from '../utils/image';
-import type { BufferReaderExtended } from '../utils/reader';
+import { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ObjectInfo } from './types';
 import { AssetType } from './types';
-
-export interface Texture2DResult {
-  name: string;
-  width: number;
-  height: number;
-  data: Buffer;
-}
 
 export interface StreamInfo {
   offset: number;
@@ -38,7 +30,7 @@ export class Texture2D extends AssetBase {
   readonly streamData?: StreamInfo;
   private readonly image: TextureDecoder;
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
     const { version } = this.info;
     if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 3)) {
@@ -48,11 +40,11 @@ export class Texture2D extends AssetBase {
       }
       r.align(4);
     }
-    this.width = r.nextInt32();
-    this.height = r.nextInt32();
+    this.width = r.readInt32();
+    this.height = r.readInt32();
     r.move(4);
     if (version[0] >= 2020) r.move(4);
-    this.textureFormat = r.nextInt32();
+    this.textureFormat = r.readInt32();
     if (version[0] < 5 || (version[0] === 5 && version[1] < 2)) r.move(1);
     else r.move(4);
     if (version[0] > 2 || (version[0] === 2 && version[1] >= 6)) r.move(1);
@@ -67,17 +59,17 @@ export class Texture2D extends AssetBase {
     if (version[0] >= 3) r.move(4);
     if (version[0] > 3 || (version[0] === 3 && version[1] >= 5)) r.move(4);
     if (version[0] > 2020 || (version[0] === 2020 && version[1] >= 2)) {
-      const length = r.nextInt32();
-      r.nextBuffer(length);
+      const length = r.readInt32();
+      r.readBuffer(length);
       r.align(4);
     }
-    const dataSize = r.nextInt32();
+    const dataSize = r.readInt32();
     this.streamData =
       dataSize === 0 && ((version[0] === 5 && version[1] >= 3) || version[0] > 5)
         ? this.readStreamInfo(r)
         : undefined;
-    const data = this.streamData?.path ? this.readData(this.streamData) : r.nextBuffer(dataSize);
-    this.image = new TextureDecoder(this, data);
+    const data = this.streamData?.path ? this.readData(this.streamData) : r.readBuffer(dataSize);
+    this.image = new TextureDecoder(this, new Uint8Array(data));
   }
 
   getImage() {
@@ -151,19 +143,19 @@ export class Texture2D extends AssetBase {
     return rgb.clone();
   }
 
-  private readTextureSetting(r: BufferReaderExtended) {
+  private readTextureSetting(r: ArrayBufferReader) {
     const { version } = this.info;
     r.move(12);
     if (version[0] >= 2017) r.move(12);
     else r.move(4);
   }
 
-  private readStreamInfo(r: BufferReaderExtended): StreamInfo {
+  private readStreamInfo(r: ArrayBufferReader): StreamInfo {
     const { version } = this.info;
     return {
-      offset: version[0] >= 2020 ? r.nextUInt64Number() : r.nextUInt32(),
-      size: r.nextUInt32(),
-      path: r.nextAlignedString(),
+      offset: version[0] >= 2020 ? Number(r.readUInt64()) : r.readUInt32(),
+      size: r.readUInt32(),
+      path: r.readAlignedString(),
     };
   }
 
@@ -172,9 +164,9 @@ export class Texture2D extends AssetBase {
     const index = this.info.bundle.nodes.findIndex(({ path }) => path === sPath);
     if (index === -1) throw new Error(`Cannot find node by path: ${sPath}`);
     const file = this.info.bundle.files[index];
-    const r = new BufferReader(file);
+    const r = new ArrayBufferReader(file);
     r.seek(streamInfo.offset);
-    return r.nextBuffer(streamInfo.size);
+    return r.readBuffer(streamInfo.size);
   }
 }
 

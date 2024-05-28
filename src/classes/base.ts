@@ -1,4 +1,4 @@
-import type { BufferReaderExtended } from '../utils/reader';
+import type { ArrayBufferReader } from '../utils/reader';
 import type { AssetType, ObjectInfo } from './types';
 
 export abstract class AssetBase {
@@ -7,10 +7,10 @@ export abstract class AssetBase {
 
   constructor(
     protected readonly info: ObjectInfo,
-    r: BufferReaderExtended,
+    r: ArrayBufferReader,
   ) {
     r.seek(info.bytesStart);
-    this.name = r.nextAlignedString();
+    this.name = r.readAlignedString();
   }
 
   get pathId() {

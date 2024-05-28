@@ -1,9 +1,9 @@
 import { decompressLz4 } from '@arkntools/unity-js-tools';
-import BufferReader from 'buffer-reader';
 import type Jimp from 'jimp';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
-import { alignReader } from './utils/buffer';
+import { concatArrayBuffer, ensureArrayBuffer } from './utils/buffer';
+import { ArrayBufferReader } from './utils/reader';
 import { UnityCN } from './utils/unitycn';
 import { unzipIfNeed } from './utils/zip';
 import { AssetType } from '.';
@@ -82,7 +82,7 @@ export interface BundleLoadOptions {
 export class Bundle {
   public readonly header: BundleHeader;
   public readonly nodes: StorageNode[] = [];
-  public readonly files: Buffer[] = [];
+  public readonly files: ArrayBuffer[] = [];
   public readonly objectMap = new Map<string, AssetObject>();
   public readonly objects: AssetObject[];
   public readonly textureMixCache = new Map<string, Jimp>();
@@ -90,19 +90,19 @@ export class Bundle {
   private readonly blockInfos: StorageBlock[] = [];
   private unityCN?: UnityCN;
 
-  static async load(data: Buffer, options?: BundleLoadOptions) {
-    const r = new BufferReader(await unzipIfNeed(data));
+  static async load(data: Buffer | ArrayBuffer | Uint8Array, options?: BundleLoadOptions) {
+    const r = new ArrayBufferReader(await unzipIfNeed(ensureArrayBuffer(data)));
     return new Bundle(r, options);
   }
 
   private constructor(
-    r: BufferReader,
+    r: ArrayBufferReader,
     public readonly options?: BundleLoadOptions,
   ) {
-    const signature = r.nextStringZero();
-    const version = r.nextUInt32BE();
-    const unityVersion = r.nextStringZero();
-    const unityReversion = r.nextStringZero();
+    const signature = r.readStringUntilZero();
+    const version = r.readUInt32BE();
+    const unityVersion = r.readStringUntilZero();
+    const unityReversion = r.readStringUntilZero();
 
     this.header = {
       signature,
@@ -158,16 +158,16 @@ export class Bundle {
     }
   }
 
-  private readHeader(r: BufferReader) {
+  private readHeader(r: ArrayBufferReader) {
     const { header } = this;
 
-    header.size = bufferReaderReadBigInt64BE(r);
-    header.compressedBlocksInfoSize = r.nextUInt32BE();
-    header.uncompressedBlocksInfoSize = r.nextUInt32BE();
-    header.flags = r.nextUInt32BE();
+    header.size = Number(r.readUInt64BE());
+    header.compressedBlocksInfoSize = r.readUInt32BE();
+    header.uncompressedBlocksInfoSize = r.readUInt32BE();
+    header.flags = r.readUInt32BE();
   }
 
-  private readUnityCN(r: BufferReader, key: string) {
+  private readUnityCN(r: ArrayBufferReader, key: string) {
     let mask: ArchiveFlags;
 
     const version = this.parseVersion(this.header.unityReversion);
@@ -189,15 +189,15 @@ export class Bundle {
     }
   }
 
-  private readBlocksInfoAndDirectory(r: BufferReader) {
+  private readBlocksInfoAndDirectory(r: ArrayBufferReader) {
     const { version, flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
     if (flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END) {
       throw new Error(`Unsupported bundle flags: ${flags}`);
     }
 
-    if (version >= 7) alignReader(r, 16);
+    if (version >= 7) r.align(16);
 
-    const blockInfoBuffer = r.nextBuffer(compressedBlocksInfoSize);
+    const blockInfoBuffer = r.readBuffer(compressedBlocksInfoSize);
     const compressionType = flags & ArchiveFlags.COMPRESSION_TYPE_MASK;
     const blockInfoUncompressedBuffer = decompressBuffer(
       blockInfoBuffer,
@@ -208,42 +208,40 @@ export class Bundle {
     this.readBlocksInfo(blockInfoUncompressedBuffer);
   }
 
-  private readBlocksInfo(blockInfo: Buffer) {
-    const r = new BufferReader(blockInfo);
-    // const uncompressedDataHash = r.nextBuffer(16);
+  private readBlocksInfo(blockInfo: ArrayBuffer) {
+    const r = new ArrayBufferReader(blockInfo);
+    // const uncompressedDataHash = r.readBuffer(16);
     r.move(16);
-    const blockInfoCount = r.nextInt32BE();
+    const blockInfoCount = r.readInt32BE();
 
     for (let i = 0; i < blockInfoCount; i++) {
       this.blockInfos.push({
-        uncompressedSize: r.nextUInt32BE(),
-        compressedSize: r.nextUInt32BE(),
-        flags: r.nextUInt16BE(),
+        uncompressedSize: r.readUInt32BE(),
+        compressedSize: r.readUInt32BE(),
+        flags: r.readUInt16BE(),
       });
     }
 
-    const nodeCount = r.nextInt32BE();
+    const nodeCount = r.readInt32BE();
 
     for (let i = 0; i < nodeCount; i++) {
       this.nodes.push({
-        offset: bufferReaderReadBigInt64BE(r),
-        size: bufferReaderReadBigInt64BE(r),
-        flags: r.nextUInt32BE(),
-        path: r.nextStringZero(),
+        offset: Number(r.readUInt64BE()),
+        size: Number(r.readUInt64BE()),
+        flags: r.readUInt32BE(),
+        path: r.readStringUntilZero(),
       });
     }
   }
 
-  private readBlocks(r: BufferReader) {
-    const results: Buffer[] = [];
+  private readBlocks(r: ArrayBufferReader) {
+    const results: ArrayBuffer[] = [];
 
     for (const [i, { flags, compressedSize, uncompressedSize }] of this.blockInfos.entries()) {
       const compressionType = flags & StorageBlockFlags.COMPRESSION_TYPE_MASK;
-      let compressedBuffer = r.nextBuffer(compressedSize);
+      const compressedBuffer = r.readBuffer(compressedSize);
       if (this.unityCN && flags & 0x100) {
-        const bytes = Uint8Array.from(compressedBuffer);
-        this.unityCN.decryptBlock(bytes, i);
-        compressedBuffer = Buffer.from(bytes);
+        this.unityCN.decryptBlock(compressedBuffer, i);
       }
       const uncompressedBuffer = decompressBuffer(
         compressedBuffer,
@@ -253,16 +251,16 @@ export class Bundle {
       results.push(uncompressedBuffer);
     }
 
-    return Buffer.concat(results);
+    return concatArrayBuffer(results);
   }
 
-  private readFiles(data: Buffer) {
-    const r = new BufferReader(data);
-    const files: Buffer[] = [];
+  private readFiles(data: ArrayBuffer) {
+    const r = new ArrayBufferReader(data);
+    const files: ArrayBuffer[] = [];
 
     for (const { offset, size } of this.nodes) {
       r.seek(offset);
-      files.push(r.nextBuffer(size));
+      files.push(r.readBuffer(size));
     }
 
     return files;
@@ -277,7 +275,11 @@ export class Bundle {
   }
 }
 
-const decompressBuffer = (data: Buffer, type: number, uncompressedSize?: number) => {
+const decompressBuffer = (
+  data: ArrayBuffer,
+  type: number,
+  uncompressedSize?: number,
+): ArrayBuffer => {
   switch (type) {
     case CompressionType.NONE:
       return data;
@@ -285,7 +287,7 @@ const decompressBuffer = (data: Buffer, type: number, uncompressedSize?: number)
     case CompressionType.LZ4:
     case CompressionType.LZ4_HC: {
       if (!uncompressedSize) throw new Error('Uncompressed size not provided');
-      return Buffer.from(decompressLz4(data, uncompressedSize));
+      return decompressLz4(new Uint8Array(data), uncompressedSize).buffer;
     }
 
     default:
@@ -293,11 +295,9 @@ const decompressBuffer = (data: Buffer, type: number, uncompressedSize?: number)
   }
 };
 
-const bufferReaderReadBigInt64BE = (r: BufferReader) => Number(r.nextBuffer(8).readBigInt64BE());
-
-const getFileType = (data: Buffer) => {
-  const r = new BufferReader(data);
-  const signature = r.nextStringZero();
+const getFileType = (data: ArrayBuffer) => {
+  const r = new ArrayBufferReader(data);
+  const signature = r.readStringUntilZero();
 
   switch (signature) {
     case Signature.UNITY_WEB:
@@ -310,31 +310,32 @@ const getFileType = (data: Buffer) => {
       return FileType.WEB_FILE;
 
     default: {
-      const GZIP_HEAD = Buffer.from([0x1f, 0x8b]);
-      const BROTLI_HEAD = Buffer.from([0x62, 0x72, 0x6f, 0x74, 0x6c, 0x69]);
-      const ZIP_HEAD = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
-      const ZIP_SPANNED_HEAD = Buffer.from([0x50, 0x4b, 0x07, 0x08]);
+      const GZIP_HEAD = [0x1f, 0x8b];
+      const BROTLI_HEAD = [0x62, 0x72, 0x6f, 0x74, 0x6c, 0x69];
+      const ZIP_HEAD = [0x50, 0x4b, 0x03, 0x04];
+      const ZIP_SPANNED_HEAD = [0x50, 0x4b, 0x07, 0x08];
 
-      const matchHead = (magic: Buffer, start = 0) => {
+      const matchHead = (magic: number[], start = 0) => {
         r.seek(start);
-        return r.nextBuffer(magic.length).equals(magic);
+        const view = new DataView(r.readBuffer(magic.length));
+        return magic.every((v, i) => view.getUint8(i) === v);
       };
 
       const isSerializedFile = () => {
-        if (data.length < 20) return false;
+        if (data.byteLength < 20) return false;
         r.seek(0);
         r.move(4);
-        let fileSize = r.nextUInt32BE();
-        const version = r.nextUInt32BE();
-        let dataOffset = r.nextUInt32BE();
+        let fileSize = r.readUInt32BE();
+        const version = r.readUInt32BE();
+        let dataOffset = r.readUInt32BE();
         r.move(4);
         if (version >= 22) {
-          if (data.length < 48) return false;
+          if (data.byteLength < 48) return false;
           r.move(4);
-          fileSize = bufferReaderReadBigInt64BE(r);
-          dataOffset = bufferReaderReadBigInt64BE(r);
+          fileSize = Number(r.readUInt64BE());
+          dataOffset = Number(r.readUInt64BE());
         }
-        if (data.length !== fileSize) return false;
+        if (data.byteLength !== fileSize) return false;
         if (dataOffset > fileSize) return false;
         return true;
       };
