@@ -4,8 +4,9 @@
   "main": "./dist/index.js",
   "author": "神代綺凛 <i@loli.best>",
   "license": "AGPL-3.0",
-  "publishConfig": {
-    "access": "public"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arkntools/unity-js"
   },
   "files": [
     "dist"
