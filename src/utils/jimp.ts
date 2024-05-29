@@ -1,4 +1,15 @@
-import Jimp from 'jimp';
+import { Buffer } from 'buffer/';
+import _Jimp from 'jimp';
+
+export type Jimp = _Jimp;
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const Jimp: typeof _Jimp =
+  typeof _Jimp?.read === 'function'
+    ? _Jimp
+    : typeof self !== 'undefined'
+      ? (self as any).Jimp
+      : _Jimp;
 
 export const getJimpPNG = (img: Jimp) => img.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG);
 
@@ -40,5 +51,5 @@ export const simpleRotate = (img: Jimp, deg: number) => {
     [img.bitmap.width, img.bitmap.height] = [img.bitmap.height, img.bitmap.width];
   }
 
-  img.bitmap.data = dstBuffer;
+  img.bitmap.data = dstBuffer as any;
 };

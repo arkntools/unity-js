@@ -1,7 +1,8 @@
 import type { SpriteAtlas, Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
-import { getJimpPNG } from '../utils/image';
-import type { BufferReaderExtended } from '../utils/reader';
+import { bufferToHex } from '../utils/buffer';
+import { getJimpPNG } from '../utils/jimp';
+import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';
 import type { ObjectInfo } from './types';
@@ -21,14 +22,14 @@ export class Sprite extends AssetBase {
   readonly spriteAtlas?: PPtr<SpriteAtlas>;
   readonly spriteRenderData: SpriteRenderData;
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
     const { version } = this.info;
-    this.rect = r.nextRectF32();
-    this.offset = r.nextVector2();
+    this.rect = r.readRectF32();
+    this.offset = r.readVector2();
     this.border =
-      version[0] > 4 || (version[0] === 4 && version[1] >= 5) ? r.nextVector4() : undefined;
-    this.pixelsToUnits = r.nextFloat();
+      version[0] > 4 || (version[0] === 4 && version[1] >= 5) ? r.readVector4() : undefined;
+    this.pixelsToUnits = r.readFloat32();
     this.pivot =
       version[0] > 5 ||
       (version[0] === 5 && version[1] > 4) ||
@@ -38,16 +39,16 @@ export class Sprite extends AssetBase {
         version[2] === 1 &&
         version[3] >= 3 &&
         this.info.buildType === 'p')
-        ? r.nextVector2()
+        ? r.readVector2()
         : undefined;
-    this.extrude = r.nextUInt32();
+    this.extrude = r.readUInt32();
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 3)) {
-      this.isPolygon = r.nextBoolean();
+      this.isPolygon = r.readBoolean();
       r.align(4);
     }
     if (version[0] >= 2017) {
-      this.renderDataKey = r.nextBuffer(16 + 8).toString('hex');
-      this.atlasTags = r.nextAlignedStringArray();
+      this.renderDataKey = bufferToHex(r.readBuffer(16 + 8));
+      this.atlasTags = r.readAlignedStringArray();
       this.spriteAtlas = new PPtr<SpriteAtlas>(this.info, r);
     }
     this.spriteRenderData = new SpriteRenderData(this.info, r);
@@ -80,7 +81,7 @@ export class SpriteRenderData {
 
   constructor(
     private readonly info: ObjectInfo,
-    r: BufferReaderExtended,
+    r: ArrayBufferReader,
   ) {
     const { version } = this.info;
     this.texture = new PPtr(info, r);
@@ -88,23 +89,23 @@ export class SpriteRenderData {
       this.alphaTexture = new PPtr(info, r);
     }
     if (version[0] >= 2019) {
-      const size = r.nextUInt32();
+      const size = r.readUInt32();
       if (size > 0) throw new Error('SecondarySpriteTexture is not implemented.');
     }
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 6)) {
-      const size = r.nextUInt32();
+      const size = r.readUInt32();
       for (let i = 0; i < size; i++) {
         this.loadSubMesh(r);
       }
-      r.move(r.nextUInt32()); // IndexBuffer
+      r.move(r.readUInt32()); // IndexBuffer
       r.align(4);
       this.readVertexData(r);
     } else {
-      const size = r.nextUInt32();
+      const size = r.readUInt32();
       for (let i = 0; i < size; i++) {
         this.readSpriteVertex(r);
       }
-      r.move(r.nextUInt32() * 2); // indices
+      r.move(r.readUInt32() * 2); // indices
       r.align(4);
     }
     if (version[0] >= 2018) {
@@ -113,17 +114,17 @@ export class SpriteRenderData {
         throw new Error(`SpriteRenderData not implemented for version ${version.join('.')}.`);
       }
     }
-    this.textureRect = r.nextRectF32();
-    this.textureRectOffset = r.nextVector2();
+    this.textureRect = r.readRectF32();
+    this.textureRectOffset = r.readVector2();
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 6)) {
-      this.atlasRectOffset = r.nextVector2();
+      this.atlasRectOffset = r.readVector2();
     }
     this.settingsRaw = new SpriteSettings(r);
     if (version[0] > 4 || (version[0] === 4 && version[1] >= 5)) {
-      this.uvTransform = r.nextVector4();
+      this.uvTransform = r.readVector4();
     }
     if (version[0] >= 2017) {
-      this.downscaleMultiplier = r.nextFloat();
+      this.downscaleMultiplier = r.readFloat32();
     }
   }
 
@@ -144,7 +145,7 @@ export class SpriteRenderData {
     );
   }
 
-  private loadSubMesh(r: BufferReaderExtended) {
+  private loadSubMesh(r: ArrayBufferReader) {
     const { version } = this.info;
     r.move(12);
     if (version[0] < 4) r.move(4);
@@ -155,43 +156,43 @@ export class SpriteRenderData {
     }
   }
 
-  private loadAABB(r: BufferReaderExtended) {
-    r.nextVector3();
-    r.nextVector3();
+  private loadAABB(r: ArrayBufferReader) {
+    r.readVector3();
+    r.readVector3();
   }
 
-  private readVertexData(r: BufferReaderExtended) {
+  private readVertexData(r: ArrayBufferReader) {
     const { version } = this.info;
     if (version[0] < 2018) r.move(4);
     r.move(4);
     if (version[0] >= 4) {
-      const size = r.nextInt32();
+      const size = r.readInt32();
       for (let i = 0; i < size; i++) {
         r.move(4);
       }
     }
     if (version[0] < 5) {
-      const size = version[0] < 4 ? 4 : r.nextInt32();
+      const size = version[0] < 4 ? 4 : r.readInt32();
       for (let i = 0; i < size; i++) {
         r.move(2);
         r.move(version[0] < 4 ? 8 : 4);
       }
     }
-    r.move(r.nextInt32());
+    r.move(r.readInt32());
   }
 
-  private readSpriteVertex(r: BufferReaderExtended) {
+  private readSpriteVertex(r: ArrayBufferReader) {
     const { version } = this.info;
-    r.nextVector3();
+    r.readVector3();
     if (version[0] < 4 || (version[0] === 4 && version[1] <= 3)) {
-      r.nextVector2();
+      r.readVector2();
     }
   }
 
-  private readMatrix(r: BufferReaderExtended) {
-    const lenI = r.nextUInt32();
+  private readMatrix(r: ArrayBufferReader) {
+    const lenI = r.readUInt32();
     for (let i = 0; i < lenI; i++) {
-      const lenJ = r.nextUInt32();
+      const lenJ = r.readUInt32();
       r.move(lenJ * 4);
     }
   }
@@ -221,8 +222,8 @@ export class SpriteSettings {
   readonly packingRotation: SpritePackingRotation;
   readonly meshType: SpriteMeshType;
 
-  constructor(r: BufferReaderExtended) {
-    const raw = r.nextUInt32();
+  constructor(r: ArrayBufferReader) {
+    const raw = r.readUInt32();
 
     this.packed = raw & 1;
     this.packingMode = (raw >> 1) & 1;

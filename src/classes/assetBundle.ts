@@ -1,4 +1,4 @@
-import type { BufferReaderExtended } from '../utils/reader';
+import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';
 import type { ObjectInfo, PairData } from './types';
@@ -10,15 +10,15 @@ export class AssetBundle extends AssetBase {
   readonly container: Array<PairData<string, AssetInfo>> = [];
   readonly containerMap = new Map<string, string>();
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
-    const preloadTableSize = r.nextInt32();
+    const preloadTableSize = r.readInt32();
     for (let i = 0; i < preloadTableSize; i++) {
       this.preloadTable.push(new PPtr(this.info, r));
     }
-    const containerSize = r.nextInt32();
+    const containerSize = r.readInt32();
     for (let i = 0; i < containerSize; i++) {
-      const path = r.nextAlignedString();
+      const path = r.readAlignedString();
       const info = new AssetInfo(this.info, r);
       this.container.push([path, info]);
       this.containerMap.set(info.asset.pathId, path);
@@ -31,9 +31,9 @@ class AssetInfo {
   readonly preloadSize: number;
   readonly asset: PPtr;
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
-    this.preloadIndex = r.nextInt32();
-    this.preloadSize = r.nextInt32();
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
+    this.preloadIndex = r.readInt32();
+    this.preloadSize = r.readInt32();
     this.asset = new PPtr(info, r);
   }
 }

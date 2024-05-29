@@ -77,8 +77,16 @@ const bgra2rgba = (data: Uint8Array) => {
   return data;
 };
 
-export const decodeTexture = (data: Uint8Array, width: number, height: number, format: TF) => {
+export const decodeTexture = (
+  data: Uint8Array,
+  width: number,
+  height: number,
+  format: TF,
+  name: string,
+) => {
   const decodeFunc = funcMap[format];
-  if (!decodeFunc) throw new Error(`Texture2d format "${format}" decoder is not implemented.`);
+  if (!decodeFunc) {
+    throw new Error(`Texture2d format "${format}" decoder is not implemented. (${name})`);
+  }
   return bgra2rgba(decodeFunc(data, width, height));
 };

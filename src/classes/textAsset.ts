@@ -1,20 +1,15 @@
-import type { BufferReaderExtended } from '../utils/reader';
+import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ObjectInfo } from './types';
 import { AssetType } from './types';
 
-export interface TextAssetResult {
-  name: string;
-  data: Buffer;
-}
-
 export class TextAsset extends AssetBase {
   readonly type = AssetType.TextAsset;
-  readonly data: Buffer;
+  readonly data: ArrayBuffer;
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
-    const length = r.nextInt32();
-    this.data = r.nextBuffer(length);
+    const length = r.readInt32();
+    this.data = r.readBuffer(length);
   }
 }

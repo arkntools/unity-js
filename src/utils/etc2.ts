@@ -20,7 +20,8 @@ const ETC2_ALPHA_MOD_TABLE = [
 ];
 const WRITE_ORDER_TABLE_REV = [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0];
 
-const toUint64 = (data: Uint8Array) => Buffer.from(data).readBigUint64BE();
+const toUInt64 = (data: Uint8Array) =>
+  new DataView(data.buffer, data.byteOffset, data.byteLength).getBigUint64(0);
 
 const clamp = (n: number) => {
   if (n < 0) return 0;
@@ -33,7 +34,7 @@ const decodeEtc2A8Block = (data: Uint8Array) => {
   if (data[1] & 0xf0) {
     const multiplier = data[1] >> 4;
     const table = ETC2_ALPHA_MOD_TABLE[data[1] & 0xf];
-    for (let i = 0, l = toUint64(data); i < 16; i++, l >>= 3n) {
+    for (let i = 0, l = toUInt64(data); i < 16; i++, l >>= 3n) {
       out[WRITE_ORDER_TABLE_REV[i]] = clamp(data[0] + multiplier * table[Number(l & 7n)]);
     }
   } else {

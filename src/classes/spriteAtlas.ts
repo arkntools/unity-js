@@ -1,7 +1,8 @@
 import { SpriteSettings } from '..';
 import type { Sprite, Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
-import type { BufferReaderExtended } from '../utils/reader';
+import { bufferToHex } from '../utils/buffer';
+import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';
 import type { ObjectInfo } from './types';
@@ -20,26 +21,26 @@ export class SpriteAtlas extends AssetBase {
   readonly renderDataMap = new Map<string, SpriteAtlasData>();
   readonly isVariant: boolean;
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
 
-    const packedSpritesSize = r.nextUInt32();
+    const packedSpritesSize = r.readUInt32();
     for (let i = 0; i < packedSpritesSize; i++) {
       this.packedSprites.push(new PPtr<Sprite>(this.info, r));
     }
 
-    r.nextAlignedStringArray();
+    r.readAlignedStringArray();
 
-    const renderDataMapSize = r.nextUInt32();
+    const renderDataMapSize = r.readUInt32();
     for (let i = 0; i < renderDataMapSize; i++) {
-      const key = r.nextBuffer(16 + 8).toString('hex');
+      const key = bufferToHex(r.readBuffer(16 + 8));
       const data = new SpriteAtlasData(this.info, r);
       this.renderDataMap.set(key, data);
     }
 
-    r.nextAlignedString();
+    r.readAlignedString();
 
-    this.isVariant = r.nextBoolean();
+    this.isVariant = r.readBoolean();
   }
 
   getImage(renderDataKey: string) {
@@ -57,20 +58,20 @@ export class SpriteAtlasData {
   readonly downscaleMultiplier: number;
   readonly settingsRaw: SpriteSettings;
 
-  constructor(info: ObjectInfo, r: BufferReaderExtended) {
+  constructor(info: ObjectInfo, r: ArrayBufferReader) {
     const { version } = info;
     this.texture = new PPtr<Texture2D>(info, r);
     this.alphaTexture = new PPtr<Texture2D>(info, r);
-    this.textureRect = r.nextRectF32();
-    this.textureRectOffset = r.nextVector2();
+    this.textureRect = r.readRectF32();
+    this.textureRectOffset = r.readVector2();
     if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 2)) {
-      this.atlasRectOffset = r.nextVector2();
+      this.atlasRectOffset = r.readVector2();
     }
-    this.uvTransform = r.nextVector4();
-    this.downscaleMultiplier = r.nextFloat();
+    this.uvTransform = r.readVector4();
+    this.downscaleMultiplier = r.readFloat32();
     this.settingsRaw = new SpriteSettings(r);
     if (version[0] > 2020 || (version[0] === 2020 && version[1] >= 2)) {
-      const size = r.nextUInt32();
+      const size = r.readUInt32();
       if (size > 0) throw new Error('SecondarySpriteTexture is not implemented.');
     }
   }

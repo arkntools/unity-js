@@ -12,6 +12,7 @@ const offTsRules = [
   'no-confusing-void-expression',
   'no-unsafe-argument',
   'unbound-method',
+  'ban-ts-comment',
 ];
 
 module.exports = {
