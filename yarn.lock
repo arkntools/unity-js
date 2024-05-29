@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@aashutoshrathi/word-wrap/-/word-wrap-1.2.6.tgz#bd9154aec9983f77b3a034ecaa015c2e4201f6cf"
   integrity sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==
 
-"@arkntools/unity-js-tools@3.0.0-alpha.3":
-  version "3.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@arkntools/unity-js-tools/-/unity-js-tools-3.0.0-alpha.3.tgz#25d3b22a9ccfefe9564959da662cebb24f0f6b3b"
-  integrity sha512-guwGtgw6jgtEGhxHBVU06uNzpaGtmy9+Fw0UkH4l/KCtAdg4QUIX92wpLy+vocy3DelrnHp6U/vmpDXAIjemkA==
+"@arkntools/unity-js-tools@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@arkntools/unity-js-tools/-/unity-js-tools-3.0.0.tgz#c5cb8734a7cf17e5c1c784e4727790d4dc250f76"
+  integrity sha512-hYplISKj6MGyAeCGttthbjeOifS/xjyyIEMRrXtm69NYaxPWhAA0fuUH+/0pJeEljqU3JR74f2mjqXcMWUhLog==
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
