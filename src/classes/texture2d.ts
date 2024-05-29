@@ -1,10 +1,8 @@
-import Jimp from 'jimp';
-import { last } from 'lodash';
-import NestedError from 'nested-error-stacks';
+import last from 'lodash/last';
 import { SpritePackingMode, SpritePackingRotation, type SpriteSettings } from '..';
 import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
-import { getJimpPNG, simpleRotate } from '../utils/image';
+import { Jimp, getJimpPNG, simpleRotate } from '../utils/jimp';
 import { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ObjectInfo } from './types';
@@ -185,7 +183,7 @@ class TextureDecoder {
 
   private decodeImageData() {
     if (this.decoded) return;
-    this.rawData = TextureDecoder.decodeTexture(
+    this.rawData = decodeTexture(
       this.rawData,
       this.texture.width,
       this.texture.height,
@@ -193,19 +191,5 @@ class TextureDecoder {
       this.texture.name,
     );
     this.decoded = true;
-  }
-
-  private static decodeTexture(
-    data: Uint8Array,
-    width: number,
-    height: number,
-    format: number,
-    name: string,
-  ) {
-    try {
-      return decodeTexture(data, width, height, format);
-    } catch (error: any) {
-      throw new NestedError(`Decode texture for "${name}" failed.`, error);
-    }
   }
 }

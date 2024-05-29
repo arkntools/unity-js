@@ -1,4 +1,4 @@
-import { sumBy } from 'lodash';
+import sumBy from 'lodash/sumBy';
 
 export const toUInt4Array = (data: Uint8Array) => {
   const result = new Uint8Array(data.length * 2);

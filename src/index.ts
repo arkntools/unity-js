@@ -2,7 +2,7 @@ import { Bundle } from './bundle';
 export * from './bundle';
 export const loadAssetBundle = Bundle.load;
 
-export * from './utils/image';
+export * from './utils/jimp';
 export * from './utils/reader';
 
 export { AssetType } from './classes/types';

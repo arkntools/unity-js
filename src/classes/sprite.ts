@@ -1,7 +1,7 @@
 import type { SpriteAtlas, Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
 import { bufferToHex } from '../utils/buffer';
-import { getJimpPNG } from '../utils/image';
+import { getJimpPNG } from '../utils/jimp';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';

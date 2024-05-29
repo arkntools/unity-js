@@ -1,4 +1,4 @@
-import { identity } from 'lodash';
+import identity from 'lodash/identity';
 import type { Bundle } from './bundle';
 import type { AssetObject } from './classes';
 import { createAssetObject } from './classes';
