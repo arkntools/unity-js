@@ -317,8 +317,8 @@ const getFileType = (data: ArrayBuffer) => {
 
       const matchHead = (magic: number[], start = 0) => {
         r.seek(start);
-        const view = new DataView(r.readBuffer(magic.length));
-        return magic.every((v, i) => view.getUint8(i) === v);
+        const view = r.readUInt8Slice(magic.length);
+        return magic.every((v, i) => view[i] === v);
       };
 
       const isSerializedFile = () => {

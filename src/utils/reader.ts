@@ -50,6 +50,13 @@ export class ArrayBufferReader {
     return buffer;
   }
 
+  readUInt8Slice(length: number) {
+    this.checkLength(length);
+    const slice = new Uint8Array(this.view.buffer, this.offset, length);
+    this.offset += length;
+    return slice;
+  }
+
   readString(length: number) {
     const end = this.checkLength(length);
     const buffer = this.view.buffer.slice(this.offset, end);

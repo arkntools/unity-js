@@ -21,7 +21,7 @@ const ETC2_ALPHA_MOD_TABLE = [
 const WRITE_ORDER_TABLE_REV = [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0];
 
 const toUInt64 = (data: Uint8Array) =>
-  new DataView(data.buffer, data.byteOffset, data.byteLength).getBigUint64(0, false);
+  new DataView(data.buffer, data.byteOffset, data.byteLength).getBigUint64(0);
 
 const clamp = (n: number) => {
   if (n < 0) return 0;

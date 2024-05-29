@@ -58,17 +58,17 @@ export class UnityCN {
     return result;
   }
 
-  private decryptByte(bytes: DataView, state: DecryptState) {
+  private decryptByte(bytes: Uint8Array, state: DecryptState) {
     const b =
       this.subTable[((state.index >> 2) & 3) + 4] +
       this.subTable[state.index & 3] +
       this.subTable[((state.index >> 4) & 3) + 8] +
       this.subTable[((state.index >> 6) & 3) + 12];
-    const curVal = bytes.getUint8(state.offset);
+    const curVal = bytes[state.offset];
     const newVal =
       (((this.indexTable[curVal & 0xf] - b) & 0xf) | (0x10 * (this.indexTable[curVal >> 4] - b))) &
       0xff;
-    bytes.setUint8(state.offset, newVal);
+    bytes[state.offset] = newVal;
     state.offset++;
     state.index++;
     return newVal;
@@ -77,11 +77,11 @@ export class UnityCN {
   public decryptBlock(bytes: ArrayBuffer, index: number) {
     const size = bytes.byteLength;
     for (let offset = 0; offset < size; ) {
-      offset += this.decrypt(new DataView(bytes, offset), index++, size - offset);
+      offset += this.decrypt(new Uint8Array(bytes, offset), index++, size - offset);
     }
   }
 
-  private decrypt(bytes: DataView, index: number, remaining: number) {
+  private decrypt(bytes: Uint8Array, index: number, remaining: number) {
     const state: DecryptState = {
       offset: 0,
       index,

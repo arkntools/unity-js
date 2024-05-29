@@ -1,9 +1,9 @@
 import JSZip from 'jszip';
 
 const matchHeader = (data: ArrayBuffer, header: Array<number | number[]>) => {
-  const view = new DataView(data);
+  const view = new Uint8Array(data, 0, header.length);
   return header.every((val, i) => {
-    const cur = view.getUint8(i);
+    const cur = view[i];
     return typeof val === 'number' ? val === cur : val.some(v => v === cur);
   });
 };
