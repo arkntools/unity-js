@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer/';
 import _Jimp from 'jimp';
 
 export type Jimp = _Jimp;
@@ -40,7 +39,9 @@ export const simpleRotate = (img: Jimp, deg: number) => {
 
   const srcBuffer = img.bitmap.data;
   const len = srcBuffer.length;
-  const dstBuffer = Buffer.allocUnsafe(len);
+  const dstBuffer = (Reflect.getPrototypeOf(srcBuffer)!.constructor as typeof Buffer).allocUnsafe(
+    len,
+  );
 
   if (steps === 2) {
     for (let srcOffset = 0; srcOffset < len; srcOffset += 4) {
@@ -51,5 +52,5 @@ export const simpleRotate = (img: Jimp, deg: number) => {
     [img.bitmap.width, img.bitmap.height] = [img.bitmap.height, img.bitmap.width];
   }
 
-  img.bitmap.data = dstBuffer as any;
+  img.bitmap.data = dstBuffer;
 };

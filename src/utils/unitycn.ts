@@ -1,4 +1,4 @@
-import { ModeOfOperation } from 'aes-js';
+import { aesEcbEncrypt } from './aes';
 import { bufferToString, hexToUInt8Array, toUInt4Array } from './buffer';
 import type { ArrayBufferReader } from './reader';
 
@@ -8,8 +8,6 @@ interface DecryptState {
 }
 
 const SIGNATURE = '#$unity3dchina!@';
-
-const AesEcb = ModeOfOperation.ecb;
 
 export class UnityCN {
   private readonly key: Uint8Array;
@@ -45,8 +43,7 @@ export class UnityCN {
 
   // 太怪了，明明是加密但是作用是解密，到底是什么科技
   private encryptWithKey(data: ArrayBuffer) {
-    const cipher = new AesEcb(this.key);
-    return cipher.encrypt(new Uint8Array(data));
+    return aesEcbEncrypt(data, this.key);
   }
 
   private decryptKey(key: ArrayBuffer, data: ArrayBuffer) {

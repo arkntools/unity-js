@@ -2,6 +2,9 @@
   "name": "@arkntools/unity-js",
   "version": "3.0.0",
   "main": "./dist/index.js",
+  "browser": {
+    "./dist/utils/aes.js": "./dist/utils/aes.browser.js"
+  },
   "author": "神代綺凛 <i@loli.best>",
   "license": "AGPL-3.0",
   "repository": {
