@@ -30,7 +30,7 @@ export class Texture2D extends AssetBase {
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
-    const { version } = this.info;
+    const { version } = this.__info;
     if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 3)) {
       r.move(5);
       if (version[0] > 2020 || (version[0] === 2020 && version[1] >= 2)) {
@@ -121,7 +121,7 @@ export class Texture2D extends AssetBase {
   }
 
   private getMixJimp(alphaTexture: Texture2D) {
-    const cacheMap = this.info.bundle.textureMixCache;
+    const cacheMap = this.__info.bundle.textureMixCache;
     const key = `${this.pathId},${alphaTexture.pathId}`;
     const cached = cacheMap.get(key);
     if (cached) return cached.clone();
@@ -142,14 +142,14 @@ export class Texture2D extends AssetBase {
   }
 
   private readTextureSetting(r: ArrayBufferReader) {
-    const { version } = this.info;
+    const { version } = this.__info;
     r.move(12);
     if (version[0] >= 2017) r.move(12);
     else r.move(4);
   }
 
   private readStreamInfo(r: ArrayBufferReader): StreamInfo {
-    const { version } = this.info;
+    const { version } = this.__info;
     return {
       offset: version[0] >= 2020 ? Number(r.readUInt64()) : r.readUInt32(),
       size: r.readUInt32(),
@@ -159,9 +159,9 @@ export class Texture2D extends AssetBase {
 
   private readData(streamInfo: StreamInfo) {
     const sPath = last(streamInfo.path.split('/'))!;
-    const index = this.info.bundle.nodes.findIndex(({ path }) => path === sPath);
+    const index = this.__info.bundle.nodes.findIndex(({ path }) => path === sPath);
     if (index === -1) throw new Error(`Cannot find node by path: ${sPath}`);
-    const file = this.info.bundle.files[index];
+    const file = this.__info.bundle.files[index];
     const r = new ArrayBufferReader(file);
     r.seek(streamInfo.offset);
     return r.readBuffer(streamInfo.size);

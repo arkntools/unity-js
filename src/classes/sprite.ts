@@ -24,7 +24,7 @@ export class Sprite extends AssetBase {
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
-    const { version } = this.info;
+    const { version } = this.__info;
     this.rect = r.readRectF32();
     this.offset = r.readVector2();
     this.border =
@@ -38,7 +38,7 @@ export class Sprite extends AssetBase {
         version[1] === 4 &&
         version[2] === 1 &&
         version[3] >= 3 &&
-        this.info.buildType === 'p')
+        this.__info.buildType === 'p')
         ? r.readVector2()
         : undefined;
     this.extrude = r.readUInt32();
@@ -49,9 +49,9 @@ export class Sprite extends AssetBase {
     if (version[0] >= 2017) {
       this.renderDataKey = bufferToHex(r.readBuffer(16 + 8));
       this.atlasTags = r.readAlignedStringArray();
-      this.spriteAtlas = new PPtr<SpriteAtlas>(this.info, r);
+      this.spriteAtlas = new PPtr(this.__info, r);
     }
-    this.spriteRenderData = new SpriteRenderData(this.info, r);
+    this.spriteRenderData = new SpriteRenderData(this.__info, r);
   }
 
   getImage() {
@@ -80,13 +80,13 @@ export class SpriteRenderData {
   readonly downscaleMultiplier?: number;
 
   constructor(
-    private readonly info: ObjectInfo,
+    private readonly __info: ObjectInfo,
     r: ArrayBufferReader,
   ) {
-    const { version } = this.info;
-    this.texture = new PPtr(info, r);
+    const { version } = this.__info;
+    this.texture = new PPtr(__info, r);
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 2)) {
-      this.alphaTexture = new PPtr(info, r);
+      this.alphaTexture = new PPtr(__info, r);
     }
     if (version[0] >= 2019) {
       const size = r.readUInt32();
@@ -137,16 +137,16 @@ export class SpriteRenderData {
   }
 
   private findAlphaTexture(texture: Texture2D) {
-    return this.info.bundle.options?.findAlphaTexture?.(
+    return this.__info.bundle.options?.findAlphaTexture?.(
       texture,
-      Array.from(this.info.bundle.objectMap.values()).filter(
+      Array.from(this.__info.bundle.objectMap.values()).filter(
         (obj): obj is Texture2D => obj.type === AssetType.Texture2D,
       ),
     );
   }
 
   private loadSubMesh(r: ArrayBufferReader) {
-    const { version } = this.info;
+    const { version } = this.__info;
     r.move(12);
     if (version[0] < 4) r.move(4);
     if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 3)) r.move(4);
@@ -162,7 +162,7 @@ export class SpriteRenderData {
   }
 
   private readVertexData(r: ArrayBufferReader) {
-    const { version } = this.info;
+    const { version } = this.__info;
     if (version[0] < 2018) r.move(4);
     r.move(4);
     if (version[0] >= 4) {
@@ -182,7 +182,7 @@ export class SpriteRenderData {
   }
 
   private readSpriteVertex(r: ArrayBufferReader) {
-    const { version } = this.info;
+    const { version } = this.__info;
     r.readVector3();
     if (version[0] < 4 || (version[0] === 4 && version[1] <= 3)) {
       r.readVector2();

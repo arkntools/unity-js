@@ -14,12 +14,12 @@ export class AssetBundle extends AssetBase {
     super(info, r);
     const preloadTableSize = r.readInt32();
     for (let i = 0; i < preloadTableSize; i++) {
-      this.preloadTable.push(new PPtr(this.info, r));
+      this.preloadTable.push(new PPtr(this.__info, r));
     }
     const containerSize = r.readInt32();
     for (let i = 0; i < containerSize; i++) {
       const path = r.readAlignedString();
-      const info = new AssetInfo(this.info, r);
+      const info = new AssetInfo(this.__info, r);
       this.container.push([path, info]);
       this.containerMap.set(info.asset.pathId, path);
     }

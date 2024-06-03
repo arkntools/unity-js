@@ -26,7 +26,7 @@ export class SpriteAtlas extends AssetBase {
 
     const packedSpritesSize = r.readUInt32();
     for (let i = 0; i < packedSpritesSize; i++) {
-      this.packedSprites.push(new PPtr<Sprite>(this.info, r));
+      this.packedSprites.push(new PPtr(this.__info, r));
     }
 
     r.readAlignedStringArray();
@@ -34,7 +34,7 @@ export class SpriteAtlas extends AssetBase {
     const renderDataMapSize = r.readUInt32();
     for (let i = 0; i < renderDataMapSize; i++) {
       const key = bufferToHex(r.readBuffer(16 + 8));
-      const data = new SpriteAtlasData(this.info, r);
+      const data = new SpriteAtlasData(this.__info, r);
       this.renderDataMap.set(key, data);
     }
 
@@ -60,8 +60,8 @@ export class SpriteAtlasData {
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     const { version } = info;
-    this.texture = new PPtr<Texture2D>(info, r);
-    this.alphaTexture = new PPtr<Texture2D>(info, r);
+    this.texture = new PPtr(info, r);
+    this.alphaTexture = new PPtr(info, r);
     this.textureRect = r.readRectF32();
     this.textureRectOffset = r.readVector2();
     if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 2)) {

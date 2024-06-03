@@ -7,19 +7,25 @@ export class PPtr<T extends AssetObject = AssetObject> {
   pathId: bigint;
 
   constructor(
-    private readonly info: ObjectInfo,
+    private readonly __info: ObjectInfo,
     r: ArrayBufferReader,
   ) {
     this.fileId = r.readInt32();
-    this.pathId = info.assetVersion < 14 ? BigInt(r.readInt32()) : r.readInt64();
+    this.pathId = __info.assetVersion < 14 ? BigInt(r.readInt32()) : r.readInt64();
   }
 
   get object() {
-    return this.info.bundle.objectMap.get(this.pathId) as T | undefined;
+    return this.__info.bundle.objectMap.get(this.pathId) as T | undefined;
   }
 
   get isNull() {
     return this.pathId === 0n || this.fileId < 0;
+  }
+
+  protected get __class() {
+    if (this.isNull) return 'PPtr<null>';
+    const objClass: string = (this.object as any)?.__class ?? 'unknown';
+    return `PPtr<${objClass}>`;
   }
 
   set(obj: T) {
