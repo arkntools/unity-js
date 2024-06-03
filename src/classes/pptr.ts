@@ -4,14 +4,14 @@ import type { AssetObject } from '.';
 
 export class PPtr<T extends AssetObject = AssetObject> {
   fileId: number;
-  pathId: string;
+  pathId: bigint;
 
   constructor(
     private readonly info: ObjectInfo,
     r: ArrayBufferReader,
   ) {
     this.fileId = r.readInt32();
-    this.pathId = String(info.assetVersion < 14 ? r.readInt32() : r.readInt64());
+    this.pathId = info.assetVersion < 14 ? BigInt(r.readInt32()) : r.readInt64();
   }
 
   get object() {
@@ -19,7 +19,7 @@ export class PPtr<T extends AssetObject = AssetObject> {
   }
 
   get isNull() {
-    return this.pathId === '0' || this.fileId < 0;
+    return this.pathId === 0n || this.fileId < 0;
   }
 
   set(obj: T) {

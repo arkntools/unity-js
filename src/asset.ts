@@ -27,7 +27,7 @@ export interface ObjectInfo {
   classId: number;
   isDestroyed: number;
   stripped: number;
-  pathId: string;
+  pathId: bigint;
   version: number[];
 }
 
@@ -109,15 +109,15 @@ export class Asset {
         classId: 0,
         isDestroyed: 0,
         stripped: 0,
-        pathId: '',
+        pathId: 0n,
         version: this.version,
       };
 
-      if (this.enableBigId) info.pathId = String(r.readInt64());
-      else if (header.version < 14) info.pathId = String(r.readInt32());
+      if (this.enableBigId) info.pathId = r.readInt64();
+      else if (header.version < 14) info.pathId = BigInt(r.readInt32());
       else {
         r.align(4);
-        info.pathId = String(r.readInt64());
+        info.pathId = r.readInt64();
       }
       info.bytesStart = header.version >= 22 ? Number(r.readUInt64()) : r.readUInt32();
       info.bytesStart += header.dataOffset;

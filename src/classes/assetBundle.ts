@@ -8,7 +8,7 @@ export class AssetBundle extends AssetBase {
   readonly type = AssetType.AssetBundle;
   readonly preloadTable: PPtr[] = [];
   readonly container: Array<PairData<string, AssetInfo>> = [];
-  readonly containerMap = new Map<string, string>();
+  readonly containerMap = new Map<bigint, string>();
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);

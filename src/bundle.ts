@@ -83,10 +83,10 @@ export class Bundle {
   public readonly header: BundleHeader;
   public readonly nodes: StorageNode[] = [];
   public readonly files: ArrayBuffer[] = [];
-  public readonly objectMap = new Map<string, AssetObject>();
+  public readonly objectMap = new Map<bigint, AssetObject>();
   public readonly objects: AssetObject[];
   public readonly textureMixCache = new Map<string, Jimp>();
-  public readonly containerMap?: Map<string, string>;
+  public readonly containerMap?: Map<bigint, string>;
   private readonly blockInfos: StorageBlock[] = [];
   private unityCN?: UnityCN;
 
