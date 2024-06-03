@@ -16,4 +16,8 @@ export abstract class AssetBase {
   get pathId() {
     return this.info.pathId;
   }
+
+  get size() {
+    return this.info.bytesSize;
+  }
 }
