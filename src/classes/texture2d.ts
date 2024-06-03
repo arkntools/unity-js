@@ -169,6 +169,7 @@ export class Texture2D extends AssetBase {
 }
 
 class TextureDecoder {
+  protected readonly __doNotDump = true;
   private decoded = false;
 
   constructor(
