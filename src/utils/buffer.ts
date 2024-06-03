@@ -17,8 +17,11 @@ export const hexToUInt8Array = (hex: string) => {
   return new Uint8Array((hex.match(/[\da-f]{2}/gi) || []).map(h => parseInt(h, 16)));
 };
 
-export const bufferToHex = (buffer: ArrayBuffer) =>
-  [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join('');
+export const bufferToHex = (buffer: ArrayBuffer, allZeroToEmpty = false) => {
+  const arr = [...new Uint8Array(buffer)];
+  if (allZeroToEmpty && arr.every(v => !v)) return '';
+  return arr.map(x => x.toString(16).padStart(2, '0')).join('');
+};
 
 export const bufferToString = (data: AllowSharedBufferSource, encoding?: string) =>
   new TextDecoder(encoding).decode(data);

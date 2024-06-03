@@ -33,7 +33,7 @@ export class SpriteAtlas extends AssetBase {
 
     const renderDataMapSize = r.readUInt32();
     for (let i = 0; i < renderDataMapSize; i++) {
-      const key = bufferToHex(r.readBuffer(16 + 8));
+      const key = bufferToHex(r.readBuffer(24), true);
       const data = new SpriteAtlasData(this.__info, r);
       this.renderDataMap.set(key, data);
     }

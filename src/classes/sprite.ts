@@ -47,7 +47,7 @@ export class Sprite extends AssetBase {
       r.align(4);
     }
     if (version[0] >= 2017) {
-      this.renderDataKey = bufferToHex(r.readBuffer(16 + 8));
+      this.renderDataKey = bufferToHex(r.readBuffer(24), true);
       this.atlasTags = r.readAlignedStringArray();
       this.spriteAtlas = new PPtr(this.__info, r);
     }
