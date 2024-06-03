@@ -62,6 +62,11 @@ export abstract class AssetBase {
   }
 
   dump(): Record<string, any> {
-    return dumpObject(this);
+    try {
+      return dumpObject(this);
+    } catch (error) {
+      console.error(`Dump ${this.__class} error:`, error);
+      return {};
+    }
   }
 }
