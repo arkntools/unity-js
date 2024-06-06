@@ -78,6 +78,10 @@ export class Texture2D extends AssetBase {
     return this.getImageJimpRaw().flip(false, true);
   }
 
+  getImageBitmap() {
+    return this.image.data.buffer.slice(0);
+  }
+
   getTransformedImageJimp(
     { downscaleMultiplier = 1, textureRect, settingsRaw }: TextureTransformedOptions,
     alphaTexture?: Texture2D,

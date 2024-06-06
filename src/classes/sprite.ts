@@ -67,6 +67,10 @@ export class Sprite extends AssetBase {
     }
     return this.spriteRenderData.getImage();
   }
+
+  getImageBitmap(): ArrayBuffer | undefined {
+    return this.getImageJimp()?.bitmap.data.buffer;
+  }
 }
 
 export class SpriteRenderData {
