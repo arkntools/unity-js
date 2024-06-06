@@ -5,7 +5,7 @@ import { getJimpPNG } from '../utils/jimp';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';
-import type { ObjectInfo } from './types';
+import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
 
 export class Sprite extends AssetBase {
@@ -68,8 +68,14 @@ export class Sprite extends AssetBase {
     return this.spriteRenderData.getImage();
   }
 
-  getImageBitmap(): ArrayBuffer | undefined {
-    return this.getImageJimp()?.bitmap.data.buffer;
+  getImageBitmap(): ImgBitMap | undefined {
+    const bitmap = this.getImageJimp()?.bitmap;
+    if (!bitmap) return;
+    return {
+      data: bitmap.data.buffer,
+      width: bitmap.width,
+      height: bitmap.height,
+    };
   }
 }
 

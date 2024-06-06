@@ -5,7 +5,7 @@ import { decodeTexture } from '../utils/decodeTexture';
 import { Jimp, getJimpPNG, simpleRotate } from '../utils/jimp';
 import { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
-import type { ObjectInfo } from './types';
+import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
 
 export interface StreamInfo {
@@ -78,8 +78,12 @@ export class Texture2D extends AssetBase {
     return this.getImageJimpRaw().flip(false, true);
   }
 
-  getImageBitmap() {
-    return this.image.data.buffer.slice(0);
+  getImageBitmap(): ImgBitMap {
+    return {
+      data: this.image.data.buffer.slice(0),
+      width: this.width,
+      height: this.height,
+    };
   }
 
   getTransformedImageJimp(

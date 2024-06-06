@@ -2,6 +2,12 @@ export type { ObjectInfo } from '../asset';
 
 export type PairData<T, U> = [T, U];
 
+export interface ImgBitMap {
+  data: ArrayBuffer;
+  width: number;
+  height: number;
+}
+
 export enum AssetType {
   UnknownType = -1,
   Object = 0,
