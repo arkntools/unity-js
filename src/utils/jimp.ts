@@ -6,8 +6,8 @@ export type Jimp = _Jimp;
 export const Jimp: typeof _Jimp =
   typeof _Jimp?.read === 'function'
     ? _Jimp
-    : typeof self !== 'undefined'
-      ? (self as any).Jimp
+    : typeof globalThis !== 'undefined'
+      ? (globalThis as any).Jimp
       : _Jimp;
 
 export const getJimpPNG = (img: Jimp) => img.deflateStrategy(0).getBufferAsync(Jimp.MIME_PNG);
