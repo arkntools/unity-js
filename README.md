@@ -2,11 +2,11 @@
 
 [![NPM version](https://img.shields.io/npm/v/@arkntools/unity-js?style=flat-square)](https://www.npmjs.com/package/@arkntools/unity-js)
 
-Unity AssetBundle 解包的 js 实现
+JS implementation of Unity AssetBundle unpacking.
 
-仅做了项目所需的最低限度实现，如果需要较完整的功能建议还是去用现成的
+Only the minimum implementation required for the project was done. If you need complete functionality, it is recommended to use a more complete library in other languages.
 
-目前仅支持：
+Currently only supports:
 
 - TextAsset
 - Texture2d
@@ -39,7 +39,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 
 (async () => {
   const bundle = await loadAssetBundle(fs.readFileSync('char_1028_texas2.ab'), {
-    // 有些 Sprite 可能不会给出 AlphaTexture 的 PathID，可以传入自定义函数去寻找
+    // Some sprites may not give the PathID of the alpha texture, you can provide a custom function to find it.
     findAlphaTexture: (texture, assets) =>
       assets.find(({ name }) => name === `${texture.name}[alpha]`),
   });
