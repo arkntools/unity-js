@@ -52,8 +52,9 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 })();
 ```
 
-## 参考
+## References
 
+- [Perfare/AssetStudio](https://github.com/Perfare/AssetStudio)
 - [RazTools/Studio](https://github.com/RazTools/Studio)
 - [K0lb3/UnityPy](https://github.com/K0lb3/UnityPy)
 - [yuanyan3060/unity-rs](https://github.com/yuanyan3060/unity-rs)
