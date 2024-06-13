@@ -1,4 +1,4 @@
-import { decompressLz4 } from '@arkntools/unity-js-tools';
+import { decompressLz4, decompressLzmaWithSize } from '@arkntools/unity-js-tools';
 import type Jimp from 'jimp';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
@@ -192,7 +192,7 @@ export class Bundle {
   private readBlocksInfoAndDirectory(r: ArrayBufferReader) {
     const { version, flags, compressedBlocksInfoSize, uncompressedBlocksInfoSize } = this.header;
     if (flags & ArchiveFlags.BLOCKS_INFO_AT_THE_END) {
-      throw new Error(`Unsupported bundle flags: ${flags}`);
+      throw new Error(`Unsupported bundle flags: ${ArchiveFlags[flags] || flags}`);
     }
 
     if (version >= 7) r.align(16);
@@ -284,14 +284,18 @@ const decompressBuffer = (
     case CompressionType.NONE:
       return data;
 
+    case CompressionType.LZMA:
+      if (!uncompressedSize) throw new Error('Uncompressed size not provided');
+      return decompressLzmaWithSize(new Uint8Array(data), uncompressedSize);
+
     case CompressionType.LZ4:
-    case CompressionType.LZ4_HC: {
+    case CompressionType.LZ4_HC:
+    case CompressionType.LZHAM:
       if (!uncompressedSize) throw new Error('Uncompressed size not provided');
       return decompressLz4(new Uint8Array(data), uncompressedSize).buffer;
-    }
 
     default:
-      throw new Error(`Unsupported compression type: ${type}`);
+      throw new Error(`Unsupported compression type: ${CompressionType[type] || type}`);
   }
 };
 
