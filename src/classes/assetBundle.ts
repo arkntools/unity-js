@@ -7,7 +7,7 @@ import { AssetType } from './types';
 export class AssetBundle extends AssetBase {
   readonly type = AssetType.AssetBundle;
   readonly preloadTable: PPtr[] = [];
-  readonly container: Array<PairData<string, AssetInfo>> = [];
+  readonly containers: Array<PairData<string, AssetInfo>> = [];
   readonly containerMap = new Map<bigint, string>();
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
@@ -20,7 +20,7 @@ export class AssetBundle extends AssetBase {
     for (let i = 0; i < containerSize; i++) {
       const path = r.readAlignedString();
       const info = new AssetInfo(this.__info, r);
-      this.container.push([path, info]);
+      this.containers.push([path, info]);
       this.containerMap.set(info.asset.pathId, path);
     }
   }

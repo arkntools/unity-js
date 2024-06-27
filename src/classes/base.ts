@@ -57,6 +57,10 @@ export abstract class AssetBase {
     return this.__info.bytesSize;
   }
 
+  get container() {
+    return this.__info.bundle.containerMap?.get(this.pathId) ?? '';
+  }
+
   protected get __class() {
     return AssetType[this.type] || 'unknown';
   }
