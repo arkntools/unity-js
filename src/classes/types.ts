@@ -448,3 +448,12 @@ export enum TextureFormat {
   ASTC_HDR_10x10,
   ASTC_HDR_12x12,
 }
+
+export enum GfxPrimitiveType {
+  Triangles = 0,
+  TriangleStrip = 1,
+  Quads = 2,
+  Lines = 3,
+  LineStrip = 4,
+  Points = 5,
+}

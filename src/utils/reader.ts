@@ -143,6 +143,14 @@ export class ArrayBufferReader {
     };
   }
 
+  readUInt16Array(size: number) {
+    const array: number[] = [];
+    for (let i = 0; i < size; i++) {
+      array.push(this.readUInt16());
+    }
+    return array;
+  }
+
   private checkPosition(position: number) {
     if (position < 0) throw new Error(`Position (${position}) must be no negative`);
     if (position > this.length) {
