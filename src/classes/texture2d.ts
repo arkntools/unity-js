@@ -1,4 +1,4 @@
-import last from 'lodash/last';
+import { last } from 'es-toolkit';
 import { SpritePackingMode, SpritePackingRotation, type SpriteSettings } from '..';
 import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
@@ -117,7 +117,7 @@ export class Texture2D extends AssetBase {
     }
 
     if (settingsRaw.packingMode === SpritePackingMode.Tight) {
-      throw new Error('SpritePackingMode.Tight not implemented.');
+      console.warn(this.name, "SpritePackingMode.Tight isn't implemented.");
     }
 
     img.flip(false, true);

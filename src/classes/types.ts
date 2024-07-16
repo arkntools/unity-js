@@ -457,3 +457,42 @@ export enum GfxPrimitiveType {
   LineStrip = 4,
   Points = 5,
 }
+
+export enum VertexChannelFormat {
+  Float,
+  Float16,
+  Color,
+  Byte,
+  UInt32,
+}
+
+export enum VertexFormat2017 {
+  Float,
+  Float16,
+  Color,
+  UNorm8,
+  SNorm8,
+  UNorm16,
+  SNorm16,
+  UInt8,
+  SInt8,
+  UInt16,
+  SInt16,
+  UInt32,
+  SInt32,
+}
+
+export enum VertexFormat {
+  Float,
+  Float16,
+  UNorm8,
+  SNorm8,
+  UNorm16,
+  SNorm16,
+  UInt8,
+  SInt8,
+  UInt16,
+  SInt16,
+  UInt32,
+  SInt32,
+}

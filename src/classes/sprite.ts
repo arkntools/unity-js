@@ -4,7 +4,8 @@ import { bufferToHex } from '../utils/buffer';
 import { getJimpPNG } from '../utils/jimp';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
-import { SubMesh } from './mesh';
+import { VertexData, SubMesh } from './mesh';
+
 import { PPtr } from './pptr';
 import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
@@ -85,6 +86,7 @@ export class SpriteRenderData {
   readonly alphaTexture?: PPtr<Texture2D>;
   readonly subMeshes?: SubMesh[];
   readonly indexBuffer?: Uint8Array;
+  readonly vertexData?: VertexData;
   readonly vertices?: SpriteVertex[];
   readonly indices?: number[];
   readonly textureRect: RectF32;
@@ -115,7 +117,7 @@ export class SpriteRenderData {
       }
       this.indexBuffer = new Uint8Array(r.readBuffer(r.readUInt32()));
       r.align(4);
-      this.readVertexData(r);
+      this.vertexData = new VertexData(r, version);
     } else {
       const size = r.readUInt32();
       this.vertices = [];
@@ -166,7 +168,6 @@ export class SpriteRenderData {
 
   private readVertexData(r: ArrayBufferReader) {
     const { version } = this.__info;
-    console.log('version: ', version);
     if (version[0] < 2018) r.move(4);
     r.move(4);
     if (version[0] >= 4) {
