@@ -1,4 +1,3 @@
-import identity from 'lodash/identity';
 import type { Bundle } from './bundle';
 import type { AssetObject } from './classes';
 import { createAssetObject } from './classes';
@@ -136,7 +135,7 @@ export class Asset {
   }
 
   public objects() {
-    return this.objectInfos.map(createAssetObject).filter(identity) as AssetObject[];
+    return this.objectInfos.map(createAssetObject).filter(o => o) as AssetObject[];
   }
 
   // 未完整实现，只用于跳过

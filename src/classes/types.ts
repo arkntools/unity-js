@@ -448,3 +448,51 @@ export enum TextureFormat {
   ASTC_HDR_10x10,
   ASTC_HDR_12x12,
 }
+
+export enum GfxPrimitiveType {
+  Triangles = 0,
+  TriangleStrip = 1,
+  Quads = 2,
+  Lines = 3,
+  LineStrip = 4,
+  Points = 5,
+}
+
+export enum VertexChannelFormat {
+  Float,
+  Float16,
+  Color,
+  Byte,
+  UInt32,
+}
+
+export enum VertexFormat2017 {
+  Float,
+  Float16,
+  Color,
+  UNorm8,
+  SNorm8,
+  UNorm16,
+  SNorm16,
+  UInt8,
+  SInt8,
+  UInt16,
+  SInt16,
+  UInt32,
+  SInt32,
+}
+
+export enum VertexFormat {
+  Float,
+  Float16,
+  UNorm8,
+  SNorm8,
+  UNorm16,
+  SNorm16,
+  UInt8,
+  SInt8,
+  UInt16,
+  SInt16,
+  UInt32,
+  SInt32,
+}

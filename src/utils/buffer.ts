@@ -1,4 +1,4 @@
-import sumBy from 'lodash/sumBy';
+import { sumBy } from 'es-toolkit';
 
 export const toUInt4Array = (data: Uint8Array) => {
   const result = new Uint8Array(data.length * 2);
@@ -27,7 +27,7 @@ export const bufferToString = (data: AllowSharedBufferSource, encoding?: string)
   new TextDecoder(encoding).decode(data);
 
 export const concatArrayBuffer = (buffers: ArrayBuffer[]) => {
-  const result = new Uint8Array(sumBy(buffers, 'byteLength'));
+  const result = new Uint8Array(sumBy(buffers, b => b.byteLength));
   buffers.reduce((pos, buffer) => {
     result.set(new Uint8Array(buffer), pos);
     return pos + buffer.byteLength;

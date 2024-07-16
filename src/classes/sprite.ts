@@ -1,9 +1,11 @@
 import type { SpriteAtlas, Texture2D } from '..';
-import type { RectF32, Vector2, Vector4 } from '../types';
+import type { RectF32, Vector2, Vector3, Vector4 } from '../types';
 import { bufferToHex } from '../utils/buffer';
 import { getJimpPNG } from '../utils/jimp';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
+import { VertexData, SubMesh } from './mesh';
+
 import { PPtr } from './pptr';
 import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
@@ -82,6 +84,11 @@ export class Sprite extends AssetBase {
 export class SpriteRenderData {
   readonly texture: PPtr<Texture2D>;
   readonly alphaTexture?: PPtr<Texture2D>;
+  readonly subMeshes?: SubMesh[];
+  readonly indexBuffer?: Uint8Array;
+  readonly vertexData?: VertexData;
+  readonly vertices?: SpriteVertex[];
+  readonly indices?: number[];
   readonly textureRect: RectF32;
   readonly textureRectOffset: Vector2;
   readonly atlasRectOffset?: Vector2;
@@ -104,18 +111,20 @@ export class SpriteRenderData {
     }
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 6)) {
       const size = r.readUInt32();
+      this.subMeshes = [];
       for (let i = 0; i < size; i++) {
-        this.loadSubMesh(r);
+        this.subMeshes.push(new SubMesh(r, version));
       }
-      r.move(r.readUInt32()); // IndexBuffer
+      this.indexBuffer = new Uint8Array(r.readBuffer(r.readUInt32()));
       r.align(4);
-      this.readVertexData(r);
+      this.vertexData = new VertexData(r, version);
     } else {
       const size = r.readUInt32();
+      this.vertices = [];
       for (let i = 0; i < size; i++) {
-        this.readSpriteVertex(r);
+        this.vertices.push(this.readSpriteVertex(r));
       }
-      r.move(r.readUInt32() * 2); // indices
+      this.indices = r.readUInt16Array(r.readUInt32());
       r.align(4);
     }
     if (version[0] >= 2018) {
@@ -146,6 +155,8 @@ export class SpriteRenderData {
     );
   }
 
+  public getTriangles() {}
+
   private findAlphaTexture(texture: Texture2D) {
     return this.__info.bundle.options?.findAlphaTexture?.(
       texture,
@@ -153,22 +164,6 @@ export class SpriteRenderData {
         (obj): obj is Texture2D => obj.type === AssetType.Texture2D,
       ),
     );
-  }
-
-  private loadSubMesh(r: ArrayBufferReader) {
-    const { version } = this.__info;
-    r.move(12);
-    if (version[0] < 4) r.move(4);
-    if (version[0] > 2017 || (version[0] === 2017 && version[1] >= 3)) r.move(4);
-    if (version[0] >= 3) {
-      r.move(8);
-      this.loadAABB(r);
-    }
-  }
-
-  private loadAABB(r: ArrayBufferReader) {
-    r.readVector3();
-    r.readVector3();
   }
 
   private readVertexData(r: ArrayBufferReader) {
@@ -193,10 +188,13 @@ export class SpriteRenderData {
 
   private readSpriteVertex(r: ArrayBufferReader) {
     const { version } = this.__info;
-    r.readVector3();
+    const vertex: SpriteVertex = {
+      pos: r.readVector3(),
+    };
     if (version[0] < 4 || (version[0] === 4 && version[1] <= 3)) {
-      r.readVector2();
+      vertex.uv = r.readVector2();
     }
+    return vertex;
   }
 
   private readMatrix(r: ArrayBufferReader) {
@@ -240,4 +238,9 @@ export class SpriteSettings {
     this.packingRotation = (raw >> 2) & 1;
     this.meshType = (raw >> 6) & 1;
   }
+}
+
+export interface SpriteVertex {
+  pos: Vector3;
+  uv?: Vector2;
 }

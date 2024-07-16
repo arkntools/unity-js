@@ -2,7 +2,7 @@
   "name": "@arkntools/unity-js",
   "version": "3.1.1",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.js",
+  "types": "./dist/index.d.ts",
   "browser": {
     "./dist/utils/aes.js": "./dist/utils/aes.browser.js"
   },
@@ -23,14 +23,13 @@
   "dependencies": {
     "@arkntools/unity-js-tools": "^3.2.0",
     "aes-js": "^3.1.2",
+    "es-toolkit": "^1.10.1",
     "jimp": "^0.22.12",
-    "jszip": "^3.10.1",
-    "lodash": "^4.17.21"
+    "jszip": "^3.10.1"
   },
   "devDependencies": {
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/aes-js": "^3.1.4",
-    "@types/lodash": "^4.17.5",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
     "@typescript-eslint/parser": "^7.13.0",
     "eslint": "^8.57.0",
