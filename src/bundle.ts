@@ -280,19 +280,20 @@ const decompressBuffer = (
   type: number,
   uncompressedSize?: number,
 ): ArrayBuffer => {
-  switch (type) {
-    case CompressionType.NONE:
-      return data;
+  if (type === CompressionType.NONE) return data;
 
+  if (!uncompressedSize) throw new Error('Uncompressed size not provided');
+
+  switch (type) {
     case CompressionType.LZMA:
-      if (!uncompressedSize) throw new Error('Uncompressed size not provided');
       return decompressLzmaWithSize(new Uint8Array(data), uncompressedSize);
 
     case CompressionType.LZ4:
     case CompressionType.LZ4_HC:
-    case CompressionType.LZHAM:
-      if (!uncompressedSize) throw new Error('Uncompressed size not provided');
       return decompressLz4(new Uint8Array(data), uncompressedSize).buffer;
+
+    case CompressionType.LZHAM:
+      throw new Error('Not implemented');
 
     default:
       throw new Error(`Unsupported compression type: ${CompressionType[type] || type}`);
