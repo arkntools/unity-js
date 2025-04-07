@@ -15,10 +15,10 @@ Currently only supports:
 
 ```js
 import fs from 'fs';
-import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
+import { loadAssetBundle, AssetType, BundleEnv } from '@arkntools/unity-js';
 
 (async () => {
-  const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab'));
+  const bundle = await loadAssetBundle(fs.readFileSync('character_table003334.ab', { env: BundleEnv.ARKNIGHTS }));
   for (const obj of bundle.objects) {
     if (obj.type === AssetType.TextAsset) {
       fs.writeFileSync(`${obj.name}.bytes`, obj.data);
@@ -28,7 +28,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 })();
 
 (async () => {
-  const bundle = await loadAssetBundle(fs.readFileSync('spritepack_ui_char_avatar_h1_0.ab'));
+  const bundle = await loadAssetBundle(fs.readFileSync('spritepack_ui_char_avatar_h1_0.ab', { env: BundleEnv.ARKNIGHTS }));
   for (const obj of bundle.objects) {
     if (obj.type === AssetType.Sprite && obj.name === 'char_002_amiya') {
       fs.writeFileSync(`${obj.name}.png`, await obj.getImage()!);
@@ -38,7 +38,7 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 })();
 
 (async () => {
-  const bundle = await loadAssetBundle(fs.readFileSync('char_1028_texas2.ab'), {
+  const bundle = await loadAssetBundle(fs.readFileSync('char_1028_texas2.ab', { env: BundleEnv.ARKNIGHTS }), {
     // Some sprites may not give the PathID of the alpha texture, you can provide a custom function to find it.
     findAlphaTexture: (texture, assets) =>
       assets.find(({ name }) => name === `${texture.name}[alpha]`),
@@ -58,3 +58,4 @@ import { loadAssetBundle, AssetType } from '@arkntools/unity-js';
 - [RazTools/Studio](https://github.com/RazTools/Studio)
 - [K0lb3/UnityPy](https://github.com/K0lb3/UnityPy)
 - [yuanyan3060/unity-rs](https://github.com/yuanyan3060/unity-rs)
+- [MooncellWiki/UnityPy](https://github.com/MooncellWiki/UnityPy)

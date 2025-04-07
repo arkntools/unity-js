@@ -5,6 +5,7 @@ import type { AssetObject } from './classes';
 import { concatArrayBuffer, ensureArrayBuffer } from './utils/buffer';
 import { ArrayBufferReader } from './utils/reader';
 import { UnityCN } from './utils/unitycn';
+import { isVersionLargerThanOrEqual, parseVersion } from './utils/version';
 import { unzipIfNeed } from './utils/zip';
 import { AssetType } from '.';
 import type { AssetBundle, Texture2D } from '.';
@@ -60,7 +61,8 @@ enum CompressionType {
   LZMA,
   LZ4,
   LZ4_HC,
-  LZHAM,
+  CUSTOM_4,
+  CUSTOM_5,
 }
 
 enum FileType {
@@ -73,10 +75,15 @@ enum FileType {
   ZIP_FILE,
 }
 
+export enum BundleEnv {
+  ARKNIGHTS,
+}
+
 export interface BundleLoadOptions {
   /** 有些 Sprite 可能不会给出 AlphaTexture 的 PathID，可以传入自定义函数去寻找 */
   findAlphaTexture?: (texture: Texture2D, assets: Texture2D[]) => Texture2D | undefined;
   unityCNKey?: string;
+  env?: BundleEnv;
 }
 
 export class Bundle {
@@ -170,7 +177,7 @@ export class Bundle {
   private readUnityCN(r: ArrayBufferReader, key: string) {
     let mask: ArchiveFlags;
 
-    const version = this.parseVersion(this.header.unityReversion);
+    const version = parseVersion(this.header.unityReversion);
     if (
       version[0] < 2020 || // 2020 and earlier
       (version[0] === 2020 && version[1] === 3 && version[2] <= 34) || // 2020.3.34 and earlier
@@ -195,11 +202,19 @@ export class Bundle {
       throw new Error(`Unsupported bundle flags: ${ArchiveFlags[flags] || flags}`);
     }
 
+    const reversion = parseVersion(this.header.unityReversion);
+
     if (version >= 7) r.align(16);
+    else if (isVersionLargerThanOrEqual(reversion, [2019, 4])) {
+      const preAlign = r.position;
+      const align = (16 - (preAlign % 16)) % 16;
+      if (align) r.move(align);
+    }
 
     const blockInfoBuffer = r.readBuffer(compressedBlocksInfoSize);
     const compressionType = flags & ArchiveFlags.COMPRESSION_TYPE_MASK;
-    const blockInfoUncompressedBuffer = decompressBuffer(
+
+    const blockInfoUncompressedBuffer = this.decompressBuffer(
       blockInfoBuffer,
       compressionType,
       uncompressedBlocksInfoSize,
@@ -237,13 +252,15 @@ export class Bundle {
   private readBlocks(r: ArrayBufferReader) {
     const results: ArrayBuffer[] = [];
 
+    if (this.header.flags & ArchiveFlags.BLOCK_INFO_NEED_PADDING_AT_START) r.align(16);
+
     for (const [i, { flags, compressedSize, uncompressedSize }] of this.blockInfos.entries()) {
       const compressionType = flags & StorageBlockFlags.COMPRESSION_TYPE_MASK;
       const compressedBuffer = r.readBuffer(compressedSize);
       if (this.unityCN && flags & 0x100) {
         this.unityCN.decryptBlock(compressedBuffer, i);
       }
-      const uncompressedBuffer = decompressBuffer(
+      const uncompressedBuffer = this.decompressBuffer(
         compressedBuffer,
         compressionType,
         uncompressedSize,
@@ -266,38 +283,90 @@ export class Bundle {
     return files;
   }
 
-  private parseVersion(str: string) {
-    return str
-      .replace(/\D/g, '.')
-      .split('.')
-      .filter(Boolean)
-      .map(v => parseInt(v));
+  private decompressBuffer(
+    data: ArrayBuffer,
+    type: number,
+    uncompressedSize?: number,
+  ): ArrayBuffer {
+    if (type === CompressionType.NONE) return data;
+
+    if (!uncompressedSize) throw new Error('Uncompressed size not provided');
+
+    switch (type) {
+      case CompressionType.LZMA:
+        return decompressLzmaWithSize(new Uint8Array(data), uncompressedSize);
+
+      case CompressionType.LZ4:
+      case CompressionType.LZ4_HC:
+        return decompressLz4(new Uint8Array(data), uncompressedSize).buffer;
+    }
+
+    const isArknights = this.options?.env === BundleEnv.ARKNIGHTS;
+
+    if (isArknights && (type === CompressionType.CUSTOM_4 || type === CompressionType.CUSTOM_5)) {
+      return decompressArkLz4(data, uncompressedSize).buffer;
+    }
+
+    throw new Error(`Unsupported compression type: ${CompressionType[type] || type}`);
   }
 }
 
-const decompressBuffer = (
-  data: ArrayBuffer,
-  type: number,
-  uncompressedSize?: number,
-): ArrayBuffer => {
-  if (type === CompressionType.NONE) return data;
-
-  if (!uncompressedSize) throw new Error('Uncompressed size not provided');
-
-  switch (type) {
-    case CompressionType.LZMA:
-      return decompressLzmaWithSize(new Uint8Array(data), uncompressedSize);
-
-    case CompressionType.LZ4:
-    case CompressionType.LZ4_HC:
-      return decompressLz4(new Uint8Array(data), uncompressedSize).buffer;
-
-    case CompressionType.LZHAM:
-      throw new Error('Not implemented');
-
-    default:
-      throw new Error(`Unsupported compression type: ${CompressionType[type] || type}`);
+const readLongLengthNoCheck = (ip: Uint8Array, pos: number): [number, number] => {
+  let b = 0;
+  let l = 0;
+  while (true) {
+    b = ip[pos];
+    pos++;
+    l += b;
+    if (b !== 255) break;
   }
+  return [l, pos];
+};
+
+// From https://github.com/MooncellWiki/UnityPy by Kengxxiao
+const decompressArkLz4 = (data: ArrayBuffer, uncompressedSize: number) => {
+  const AK_LITERAL_LENGTH_MASK = ((1 << 4) - 1) & 0xff;
+  const AK_MATCH_LENGTH_MASK = ~AK_LITERAL_LENGTH_MASK & 0xff;
+
+  const fixedCompressedData = new Uint8Array(data);
+
+  let ip = 0;
+  let op = 0;
+
+  while (true) {
+    let literalLength = fixedCompressedData[ip] & AK_LITERAL_LENGTH_MASK;
+    let matchLength = ((fixedCompressedData[ip] & AK_MATCH_LENGTH_MASK) >> 4) & 0xff;
+
+    fixedCompressedData[ip] = ((literalLength << 4) | matchLength) & 0xff;
+    ip++;
+
+    if (literalLength === 15) {
+      const [l, newIp] = readLongLengthNoCheck(fixedCompressedData, ip);
+      literalLength += l;
+      ip = newIp;
+    }
+
+    op += literalLength;
+    ip += literalLength;
+
+    if (uncompressedSize <= op) break;
+
+    const offset = fixedCompressedData[ip + 1] | (fixedCompressedData[ip] << 8);
+    fixedCompressedData[ip] = offset & 0xff;
+    fixedCompressedData[ip + 1] = (offset >> 8) & 0xff;
+    ip += 2;
+
+    if (matchLength === 15) {
+      const [m, newIp] = readLongLengthNoCheck(fixedCompressedData, ip);
+      matchLength += m;
+      ip = newIp;
+    }
+
+    matchLength += 4;
+    op += matchLength;
+  }
+
+  return decompressLz4(fixedCompressedData, uncompressedSize);
 };
 
 const getFileType = (data: ArrayBuffer) => {
