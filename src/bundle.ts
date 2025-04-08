@@ -76,6 +76,7 @@ enum FileType {
 }
 
 export enum BundleEnv {
+  NONE,
   ARKNIGHTS,
 }
 
