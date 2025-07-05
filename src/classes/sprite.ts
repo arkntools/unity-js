@@ -155,8 +155,6 @@ export class SpriteRenderData {
     );
   }
 
-  public getTriangles() {}
-
   private findAlphaTexture(texture: Texture2D) {
     return this.__info.bundle.options?.findAlphaTexture?.(
       texture,

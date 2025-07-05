@@ -13,3 +13,5 @@ export * from './classes/texture2d';
 export * from './classes/sprite';
 export * from './classes/spriteAtlas';
 export * from './classes/assetBundle';
+export * from './classes/monoBehaviour';
+export * from './classes/monoScript';

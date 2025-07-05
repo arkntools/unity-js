@@ -114,8 +114,8 @@ export class ArrayBufferReader {
     return {
       x: this.readFloat32(),
       y: this.readFloat32(),
-      width: this.readFloat32(),
-      height: this.readFloat32(),
+      w: this.readFloat32(),
+      h: this.readFloat32(),
     };
   }
 

@@ -17,7 +17,7 @@ export interface StreamInfo {
 export interface TextureTransformedOptions {
   textureRect: RectF32;
   downscaleMultiplier?: number;
-  settingsRaw: SpriteSettings;
+  settingsRaw?: SpriteSettings;
 }
 
 export class Texture2D extends AssetBase {
@@ -87,19 +87,23 @@ export class Texture2D extends AssetBase {
     };
   }
 
+  getMixJimp(alphaTexture: Texture2D) {
+    return this.getMixJimpRaw(alphaTexture).flip(false, true);
+  }
+
   getTransformedImageJimp(
     { downscaleMultiplier = 1, textureRect, settingsRaw }: TextureTransformedOptions,
     alphaTexture?: Texture2D,
   ) {
-    const img = alphaTexture ? this.getMixJimp(alphaTexture) : this.getImageJimpRaw();
+    const img = alphaTexture ? this.getMixJimpRaw(alphaTexture) : this.getImageJimpRaw();
 
     if (downscaleMultiplier > 0 && downscaleMultiplier !== 1) {
       img.resize(img.getWidth() / downscaleMultiplier, img.getHeight() / downscaleMultiplier);
     }
 
-    img.crop(textureRect.x, textureRect.y, textureRect.width, textureRect.height);
+    img.crop(textureRect.x, textureRect.y, textureRect.w, textureRect.h);
 
-    if (settingsRaw.packed === 1) {
+    if (settingsRaw?.packed === 1) {
       switch (settingsRaw.packingRotation) {
         case SpritePackingRotation.FlipHorizontal:
           img.flip(true, false);
@@ -116,7 +120,7 @@ export class Texture2D extends AssetBase {
       }
     }
 
-    if (settingsRaw.packingMode === SpritePackingMode.Tight) {
+    if (settingsRaw?.packingMode === SpritePackingMode.Tight) {
       console.warn(this.name, "SpritePackingMode.Tight isn't implemented.");
     }
 
@@ -129,7 +133,7 @@ export class Texture2D extends AssetBase {
     return new Jimp({ data: this.image.data, width: this.width, height: this.height });
   }
 
-  private getMixJimp(alphaTexture: Texture2D) {
+  private getMixJimpRaw(alphaTexture: Texture2D) {
     const cacheMap = this.__info.bundle.textureMixCache;
     const key = `${this.pathId},${alphaTexture.pathId}`;
     const cached = cacheMap.get(key);

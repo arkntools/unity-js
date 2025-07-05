@@ -1,4 +1,4 @@
-export type { ObjectInfo } from '../asset';
+export type { ObjectInfo } from '../object';
 
 export type PairData<T, U> = [T, U];
 

@@ -1,4 +1,4 @@
-import type { ArrayBufferReader } from '../utils/reader';
+import { ArrayBufferReader } from '../utils/reader';
 import type { ObjectInfo } from './types';
 import type { AssetObject } from '.';
 
@@ -6,12 +6,22 @@ export class PPtr<T extends AssetObject = AssetObject> {
   fileId: number;
   pathId: bigint;
 
+  constructor(info: ObjectInfo, r: ArrayBufferReader);
+  constructor(info: ObjectInfo, fileId: number, pathId: bigint);
   constructor(
     private readonly __info: ObjectInfo,
-    r: ArrayBufferReader,
+    r: ArrayBufferReader | number,
+    pathId?: bigint,
   ) {
-    this.fileId = r.readInt32();
-    this.pathId = __info.assetVersion < 14 ? BigInt(r.readInt32()) : r.readInt64();
+    if (r instanceof ArrayBufferReader) {
+      this.fileId = r.readInt32();
+      this.pathId = this.__info.assetVersion < 14 ? BigInt(r.readInt32()) : r.readInt64();
+    } else if (typeof r === 'number' && typeof pathId === 'bigint') {
+      this.fileId = r;
+      this.pathId = pathId;
+    } else {
+      throw new Error('PPtr invalid arguments');
+    }
   }
 
   get object() {
