@@ -74,7 +74,7 @@ export class Sprite extends AssetBase {
     const bitmap = this.getImageJimp()?.bitmap;
     if (!bitmap) return;
     return {
-      data: bitmap.data.buffer,
+      data: bitmap.data.buffer as unknown as ArrayBuffer,
       width: bitmap.width,
       height: bitmap.height,
     };

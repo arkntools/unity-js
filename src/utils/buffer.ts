@@ -36,4 +36,4 @@ export const concatArrayBuffer = (buffers: ArrayBuffer[]) => {
 };
 
 export const ensureArrayBuffer = (data: Buffer | ArrayBuffer | Uint8Array): ArrayBuffer =>
-  data instanceof ArrayBuffer ? data : data.buffer || data;
+  data instanceof ArrayBuffer ? data : ((data.buffer || data) as unknown as ArrayBuffer);

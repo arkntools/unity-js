@@ -69,7 +69,7 @@ export class VertexData {
       throw new Error('VertexData version[0] < 5 not implemented.');
     } else {
       const channels = this.channels!;
-      const streamCount = maxBy(channels, ({ stream }) => stream).stream + 1;
+      const streamCount = maxBy(channels, ({ stream }) => stream)!.stream + 1;
       this.streams = [];
       for (let s = 0, offset = 0; s < streamCount; s++) {
         let channelMask = 0;

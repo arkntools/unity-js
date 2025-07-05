@@ -81,7 +81,7 @@ export class Texture2D extends AssetBase {
   getImageBitmap(): ImgBitMap {
     const { bitmap } = this.getImageJimp();
     return {
-      data: bitmap.data.buffer,
+      data: bitmap.data.buffer as unknown as ArrayBuffer,
       width: bitmap.width,
       height: bitmap.height,
     };

@@ -1,6 +1,6 @@
 export class ArrayBufferReader {
   private offset = 0;
-  private readonly view: DataView;
+  private readonly view: DataView<ArrayBuffer>;
   private readonly textDecoder = new TextDecoder();
 
   constructor(

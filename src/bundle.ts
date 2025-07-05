@@ -295,17 +295,21 @@ export class Bundle {
 
     switch (type) {
       case CompressionType.LZMA:
-        return decompressLzmaWithSize(new Uint8Array(data), uncompressedSize);
+        return decompressLzmaWithSize(
+          new Uint8Array(data),
+          uncompressedSize,
+        ) as unknown as ArrayBuffer;
 
       case CompressionType.LZ4:
       case CompressionType.LZ4_HC:
-        return decompressLz4(new Uint8Array(data), uncompressedSize).buffer;
+        return decompressLz4(new Uint8Array(data), uncompressedSize)
+          .buffer as unknown as ArrayBuffer;
     }
 
     const isArknights = this.options?.env === BundleEnv.ARKNIGHTS;
 
     if (isArknights && (type === CompressionType.CUSTOM_4 || type === CompressionType.CUSTOM_5)) {
-      return decompressArkLz4(data, uncompressedSize).buffer;
+      return decompressArkLz4(data, uncompressedSize).buffer as unknown as ArrayBuffer;
     }
 
     throw new Error(`Unsupported compression type: ${CompressionType[type] || type}`);
