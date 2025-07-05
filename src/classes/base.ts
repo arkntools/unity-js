@@ -39,14 +39,15 @@ const dumpObject = (obj: any): any => {
 
 export abstract class AssetBase {
   abstract readonly type: AssetType;
-  readonly name: string;
+  readonly name: string = '';
 
   constructor(
     protected readonly __info: ObjectInfo,
     r: ArrayBufferReader,
+    readName = true,
   ) {
     r.seek(__info.bytesStart);
-    this.name = r.readAlignedString();
+    if (readName) this.readName(r);
   }
 
   get pathId() {
@@ -65,6 +66,11 @@ export abstract class AssetBase {
     return AssetType[this.type] || 'unknown';
   }
 
+  protected readName(r: ArrayBufferReader) {
+    // @ts-expect-error
+    this.name = r.readAlignedString();
+  }
+
   dump(): Record<string, any> {
     try {
       return dumpObject(this);
@@ -72,5 +78,11 @@ export abstract class AssetBase {
       console.error(`Dump ${this.__class} error:`, error);
       return {};
     }
+  }
+
+  getRaw() {
+    const r = this.__info.getReader();
+    r.seek(this.__info.bytesStart);
+    return r.readBuffer(this.size);
   }
 }
