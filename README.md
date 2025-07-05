@@ -12,6 +12,8 @@ Currently only supports:
 - Texture2d
 - Sprite
 - SpriteAtlas
+- MonoBehaviour
+- MonoScript
 
 ```js
 import fs from 'fs';
