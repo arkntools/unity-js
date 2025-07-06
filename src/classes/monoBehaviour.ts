@@ -5,7 +5,7 @@ import { AssetBase } from './base';
 import type { MonoScript } from './monoScript';
 import { PPtr } from './pptr';
 import type { Texture2D } from './texture2d';
-import type { ObjectInfo } from './types';
+import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
 
 class AtlasInfo {
@@ -28,6 +28,16 @@ class AtlasInfo {
     if (!img) return;
     return getJimpPNG(img);
   }
+
+  getImageBitmap(): ImgBitMap | undefined {
+    const bitmap = this.getImageJimp()?.bitmap;
+    if (!bitmap) return;
+    return {
+      data: bitmap.data.buffer as unknown as ArrayBuffer,
+      width: bitmap.width,
+      height: bitmap.height,
+    };
+  }
 }
 
 class AtlasSprite {
@@ -49,6 +59,16 @@ class AtlasSprite {
     const img = this.getImageJimp();
     if (!img) return;
     return getJimpPNG(img);
+  }
+
+  getImageBitmap(): ImgBitMap | undefined {
+    const bitmap = this.getImageJimp()?.bitmap;
+    if (!bitmap) return;
+    return {
+      data: bitmap.data.buffer as unknown as ArrayBuffer,
+      width: bitmap.width,
+      height: bitmap.height,
+    };
   }
 }
 
@@ -97,3 +117,5 @@ export class MonoBehaviour extends AssetBase {
     }
   }
 }
+
+export { AtlasInfo as MonoBehaviourAtlasInfo, AtlasSprite as MonoBehaviourAtlasSprite };
