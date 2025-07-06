@@ -7,21 +7,31 @@ import { AssetType } from './types';
 export class AssetBundle extends AssetBase {
   readonly type = AssetType.AssetBundle;
   readonly preloadTable: PPtr[] = [];
-  readonly containers: Array<PairData<string, AssetInfo>> = [];
-  readonly containerMap = new Map<bigint, string>();
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  readonly containers: Array<PairData<String, AssetInfo>> = [];
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  readonly containerMap = new Map<bigint, String>();
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
+
     const preloadTableSize = r.readInt32();
     for (let i = 0; i < preloadTableSize; i++) {
       this.preloadTable.push(new PPtr(this.__info, r));
     }
+
     const containerSize = r.readInt32();
     for (let i = 0; i < containerSize; i++) {
-      const path = r.readAlignedString();
-      const info = new AssetInfo(this.__info, r);
-      this.containers.push([path, info]);
-      this.containerMap.set(info.asset.pathId, path);
+      // eslint-disable-next-line no-new-wrappers
+      const path = new String(r.readAlignedString());
+      const container = new AssetInfo(this.__info, r);
+      this.containers.push([path, container]);
+
+      const { preloadIndex, preloadSize } = container;
+      const preloadEnd = preloadIndex + preloadSize;
+      this.preloadTable.slice(preloadIndex, preloadEnd).forEach(preload => {
+        this.containerMap.set(preload.pathId, path);
+      });
     }
   }
 }

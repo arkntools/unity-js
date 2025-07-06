@@ -94,13 +94,18 @@ export class Bundle {
   public readonly objectMap = new Map<bigint, AssetObject>();
   public readonly objects: AssetObject[];
   public readonly textureMixCache = new Map<string, Jimp>();
-  public readonly containerMap?: Map<bigint, string>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  public readonly containerMap?: Map<bigint, String>;
   private readonly blockInfos: StorageBlock[] = [];
   private unityCN?: UnityCN;
 
   static async load(data: Buffer | ArrayBuffer | Uint8Array, options?: BundleLoadOptions) {
     const r = new ArrayBufferReader(await unzipIfNeed(ensureArrayBuffer(data)));
     return new Bundle(r, options);
+  }
+
+  getContainer(pathId: bigint): string | undefined {
+    return this.containerMap?.get(pathId)?.toString();
   }
 
   private constructor(
