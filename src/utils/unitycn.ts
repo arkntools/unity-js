@@ -1,4 +1,4 @@
-import { aesEcbEncrypt } from './aes';
+import { aesEcbEncrypt } from '#aes';
 import { bufferToString, hexToUInt8Array, toUInt4Array } from './buffer';
 import type { ArrayBufferReader } from './reader';
 

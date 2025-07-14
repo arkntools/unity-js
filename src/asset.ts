@@ -27,7 +27,11 @@ export class Asset {
   readonly objectInfos: ObjectInfo[] = [];
   readonly reader: ArrayBufferReader;
 
-  constructor(bundle: Bundle, data: ArrayBuffer) {
+  constructor(
+    bundle: Bundle,
+    data: ArrayBuffer,
+    readonly path: string,
+  ) {
     const r = new ArrayBufferReader(data);
     this.reader = r;
 

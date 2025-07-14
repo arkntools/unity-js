@@ -18,7 +18,7 @@ export class ObjectInfo {
   readonly version: number[];
 
   constructor(
-    asset: Asset,
+    readonly asset: Asset,
     readonly bundle: Bundle,
   ) {
     const r = asset.reader;

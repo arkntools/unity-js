@@ -4,13 +4,18 @@
     "module": "CommonJS",
     "outDir": "dist",
     "moduleResolution": "Node",
+    "allowJs": true,
     "strict": true,
     "declaration": true,
     "removeComments": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "#aes": ["./src/utils/aes.ts"],
+      "#windowForFMOD": ["./src/utils/windowForFMOD.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

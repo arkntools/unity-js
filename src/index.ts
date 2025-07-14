@@ -8,6 +8,7 @@ export * from './utils/reader';
 export { AssetType, type ImgBitMap } from './classes/types';
 export type { AssetObject } from './classes/index';
 
+export * from './classes/pptr';
 export * from './classes/textAsset';
 export * from './classes/texture2d';
 export * from './classes/sprite';
@@ -15,3 +16,4 @@ export * from './classes/spriteAtlas';
 export * from './classes/assetBundle';
 export * from './classes/monoBehaviour';
 export * from './classes/monoScript';
+export * from './classes/audioClip';

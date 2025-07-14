@@ -51,6 +51,13 @@ module.exports = {
           order: 'asc',
           caseInsensitive: true,
         },
+        pathGroups: [
+          {
+            pattern: '#**',
+            group: 'parent',
+            position: 'before',
+          },
+        ],
       },
     ],
     'no-new': 'off',

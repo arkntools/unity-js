@@ -1,16 +1,46 @@
 {
   "name": "@arkntools/unity-js",
   "version": "3.4.2",
+  "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "browser": {
-    "./dist/utils/aes.js": "./dist/utils/aes.browser.js"
+  "import": {
+    "#aes": {
+      "node": "./dist/utils/aes.js",
+      "default": "./dist/utils/aes.browser.js"
+    },
+    "#windowForFMOD": {
+      "node": "./dist/utils/windowForFMOD.js",
+      "default": "./dist/utils/windowForFMOD.browser.js"
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./audio": {
+      "types": "./dist/utils/audio.d.ts",
+      "default": "./dist/utils/audio.js"
+    },
+    "./class/*": {
+      "types": "./dist/class/*.d.ts",
+      "require": "./dist/class/*.js"
+    },
+    "./utils/*": {
+      "types": "./dist/utils/*.d.ts",
+      "require": "./dist/utils/*.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "require": "./dist/*.js"
+    }
   },
   "author": "神代綺凛 <i@loli.best>",
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/arkntools/unity-js"
+    "url": "git+https://github.com/arkntools/unity-js.git"
   },
   "files": [
     "dist"
@@ -26,6 +56,9 @@
     "es-toolkit": "^1.39.6",
     "jimp": "^0.22.12",
     "jszip": "^3.10.1"
+  },
+  "optionalDependencies": {
+    "node-web-audio-api": "^1.0.4"
   },
   "devDependencies": {
     "@tsuk1ko/postversion": "^1.0.2",

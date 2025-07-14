@@ -1,4 +1,5 @@
 import { decompressLz4, decompressLzmaWithSize } from '@arkntools/unity-js-tools';
+import { zip } from 'es-toolkit';
 import type Jimp from 'jimp';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
@@ -144,9 +145,9 @@ export class Bundle {
 
     let assetBundle: AssetBundle | undefined;
 
-    this.files
-      .filter(f => getFileType(f) === FileType.ASSETS_FILE)
-      .flatMap(f => new Asset(this, f).objects())
+    zip(this.files, this.nodes)
+      .filter(([f]) => getFileType(f) === FileType.ASSETS_FILE)
+      .flatMap(([f, n]) => new Asset(this, f, n.path).objects())
       .forEach(obj => {
         this.objectMap.set(obj.pathId, obj);
         if (obj.type === AssetType.AssetBundle) assetBundle = obj;
