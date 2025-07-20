@@ -1,1 +1,1 @@
-export { fsbToWav } from '../lib/fmod';
+export { fsbToWav } from './fmod';

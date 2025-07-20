@@ -1,7 +1,7 @@
 {
   "name": "@arkntools/unity-js",
   "version": "3.4.2",
-  "type": "commonjs",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "import": {
@@ -10,8 +10,16 @@
       "default": "./dist/utils/aes.browser.js"
     },
     "#windowForFMOD": {
-      "node": "./dist/utils/windowForFMOD.js",
-      "default": "./dist/utils/windowForFMOD.browser.js"
+      "node": "./dist/utils/fmod/window.js",
+      "default": "./dist/utils/fmod/window.browser.js"
+    },
+    "#buffer": {
+      "node": "./dist/lib/buffer/index.js",
+      "default": "./dist/lib/buffer/index.browser.js"
+    },
+    "#jimp/png": {
+      "browser": "@jimp/wasm-png",
+      "default": "@jimp/js-png"
     }
   },
   "exports": {
@@ -43,7 +51,8 @@
     "url": "git+https://github.com/arkntools/unity-js.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "lib"
   ],
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -52,10 +61,19 @@
     "postversion": "tpv"
   },
   "dependencies": {
+    "@arkntools/fmod": "file:./lib/fmod",
     "@arkntools/unity-js-tools": "^3.2.0",
+    "@jimp/core": "^1.6.0",
+    "@jimp/js-png": "^1.6.0",
+    "@jimp/plugin-crop": "^1.6.0",
+    "@jimp/plugin-flip": "^1.6.0",
+    "@jimp/plugin-resize": "^1.6.0",
+    "@jimp/plugin-rotate": "^1.6.0",
+    "@jimp/types": "^1.6.0",
+    "@jimp/wasm-png": "^1.6.0",
     "aes-js": "^3.1.2",
+    "buffer": "^6.0.3",
     "es-toolkit": "^1.39.7",
-    "jimp": "^0.22.12",
     "jszip": "^3.10.1"
   },
   "optionalDependencies": {
@@ -65,6 +83,7 @@
     "@antfu/eslint-config": "^4.17.0",
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/aes-js": "^3.1.4",
+    "@types/pngjs": "^6.0.5",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
     "jiti": "^2.4.2",

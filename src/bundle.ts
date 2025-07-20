@@ -1,8 +1,8 @@
 import { decompressLz4, decompressLzmaWithSize } from '@arkntools/unity-js-tools';
 import { zip } from 'es-toolkit';
-import type Jimp from 'jimp';
 import { Asset } from './asset';
 import type { AssetObject } from './classes';
+import type { Jimp } from './lib/jimp';
 import { concatArrayBuffer, ensureArrayBuffer } from './utils/buffer';
 import { ArrayBufferReader } from './utils/reader';
 import { UnityCN } from './utils/unitycn';

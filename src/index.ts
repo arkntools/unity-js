@@ -16,5 +16,5 @@ export * from './classes/spriteAtlas';
 export * from './classes/textAsset';
 export * from './classes/texture2d';
 export { AssetType, type ImgBitMap } from './classes/types';
-export * from './utils/jimp';
+export * from './lib/jimp';
 export * from './utils/reader';

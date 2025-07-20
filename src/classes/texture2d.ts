@@ -1,9 +1,9 @@
 import { last } from 'es-toolkit';
 import { SpritePackingMode, SpritePackingRotation } from '..';
 import type { SpriteSettings } from '..';
+import { getJimpPNG, Jimp } from '../lib/jimp';
 import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
-import { getJimpPNG, Jimp, simpleRotate } from '../utils/jimp';
 import { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ImgBitMap, ObjectInfo } from './types';
@@ -20,6 +20,8 @@ export interface TextureTransformedOptions {
   downscaleMultiplier?: number;
   settingsRaw?: SpriteSettings;
 }
+
+const jimpFlipVertical = (img: Jimp) => img.flip({ horizontal: false, vertical: true });
 
 export class Texture2D extends AssetBase {
   readonly type = AssetType.Texture2D;
@@ -76,7 +78,7 @@ export class Texture2D extends AssetBase {
   }
 
   getImageJimp() {
-    return this.getImageJimpRaw().flip(false, true);
+    return jimpFlipVertical(this.getImageJimpRaw());
   }
 
   getImageBitmap(): ImgBitMap {
@@ -89,7 +91,7 @@ export class Texture2D extends AssetBase {
   }
 
   getMixJimp(alphaTexture: Texture2D) {
-    return this.getMixJimpRaw(alphaTexture).flip(false, true);
+    return jimpFlipVertical(this.getMixJimpRaw(alphaTexture));
   }
 
   getTransformedImageJimp(
@@ -99,24 +101,32 @@ export class Texture2D extends AssetBase {
     const img = alphaTexture ? this.getMixJimpRaw(alphaTexture) : this.getImageJimpRaw();
 
     if (downscaleMultiplier > 0 && downscaleMultiplier !== 1) {
-      img.resize(img.getWidth() / downscaleMultiplier, img.getHeight() / downscaleMultiplier);
+      img.resize({
+        w: img.width / downscaleMultiplier,
+        h: img.height / downscaleMultiplier,
+      });
     }
 
-    img.crop(textureRect.x, textureRect.y, textureRect.w, textureRect.h);
+    img.crop({
+      x: textureRect.x,
+      y: textureRect.y,
+      w: textureRect.w,
+      h: textureRect.h,
+    });
 
     if (settingsRaw?.packed === 1) {
       switch (settingsRaw.packingRotation) {
         case SpritePackingRotation.FlipHorizontal:
-          img.flip(true, false);
+          jimpFlipVertical(img);
           break;
         case SpritePackingRotation.FlipVertical:
-          img.flip(false, true);
+          jimpFlipVertical(img);
           break;
         case SpritePackingRotation.Rotate180:
-          simpleRotate(img, 180);
+          img.rotate(180);
           break;
         case SpritePackingRotation.Rotate90:
-          simpleRotate(img, 270);
+          img.rotate(270);
           break;
       }
     }
@@ -125,13 +135,13 @@ export class Texture2D extends AssetBase {
       console.warn(this.name, "SpritePackingMode.Tight isn't implemented.");
     }
 
-    img.flip(false, true);
+    jimpFlipVertical(img);
 
     return img;
   }
 
   private getImageJimpRaw() {
-    return new Jimp({ data: this.image.data, width: this.width, height: this.height });
+    return new Jimp({ data: Buffer.from(this.image.data), width: this.width, height: this.height });
   }
 
   private getMixJimpRaw(alphaTexture: Texture2D) {
@@ -144,12 +154,11 @@ export class Texture2D extends AssetBase {
     const alpha = alphaTexture.getImageJimpRaw();
 
     if (this.width !== alphaTexture.width || this.height !== alphaTexture.height) {
-      alpha.resize(this.width, this.height);
+      alpha.resize({ w: this.width, h: this.height });
     }
 
-    rgb.scan(0, 0, this.width, this.height, function (x, y, idx) {
-      this.bitmap.data[idx + 3] = alpha.bitmap.data[idx];
-    });
+    rgb.mixAlpha(alpha);
+
     cacheMap.set(key, rgb);
 
     return rgb.clone();

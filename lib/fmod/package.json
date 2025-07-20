@@ -1,0 +1,6 @@
+{
+  "name": "@arkntools/fmod",
+  "version": "1.0.0",
+  "main": "./fmod_reduced.js",
+  "types": "./fmod_reduced.d.ts"
+}

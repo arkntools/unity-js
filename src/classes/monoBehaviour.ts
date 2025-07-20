@@ -1,5 +1,5 @@
+import { getJimpPNG } from '../lib/jimp';
 import type { RectF32 } from '../types';
-import { getJimpPNG } from '../utils/jimp';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import type { MonoScript } from './monoScript';

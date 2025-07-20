@@ -1,6 +1,6 @@
+import FMOD from '@arkntools/fmod';
 import { once } from 'es-toolkit';
 import { windowForFMOD } from '#windowForFMOD';
-import FMOD from './fmod_reduced';
 
 const SYMBOL = {
   OUTVAR: Symbol('outvar'),
