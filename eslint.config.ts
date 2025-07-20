@@ -29,6 +29,7 @@ export default antfu(
   prettierConfig as Linter.Config,
   {
     rules: {
+      'array-callback-return': 'off',
       'unicorn/new-for-builtins': 'off',
       'node/prefer-global/buffer': 'off',
       'antfu/curly': 'off',

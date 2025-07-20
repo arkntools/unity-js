@@ -5,6 +5,7 @@ import { getJimpPNG, Jimp } from '../lib/jimp';
 import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
 import { ArrayBufferReader } from '../utils/reader';
+import type { GetImage } from './base';
 import { AssetBase } from './base';
 import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
@@ -23,7 +24,7 @@ export interface TextureTransformedOptions {
 
 const jimpFlipVertical = (img: Jimp) => img.flip({ horizontal: false, vertical: true });
 
-export class Texture2D extends AssetBase {
+export class Texture2D extends AssetBase implements GetImage {
   readonly type = AssetType.Texture2D;
   readonly width: number;
   readonly height: number;

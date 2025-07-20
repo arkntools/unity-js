@@ -143,6 +143,15 @@ export class ArrayBufferReader {
     };
   }
 
+  readColor() {
+    return {
+      r: this.readFloat32(),
+      g: this.readFloat32(),
+      b: this.readFloat32(),
+      a: this.readFloat32(),
+    };
+  }
+
   readUInt16Array(size: number) {
     const array: number[] = [];
     for (let i = 0; i < size; i++) {

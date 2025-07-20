@@ -1,8 +1,31 @@
+import type { JimpClass } from '@jimp/types';
 import { once } from 'es-toolkit';
+import { getJimpPNG } from '../lib/jimp';
 import type { TypeTreeNode } from '../serializedType';
 import type { ArrayBufferReader } from '../utils/reader';
-import type { ObjectInfo } from './types';
+import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
+
+export interface GetImage {
+  getImage: () => Promise<Buffer> | undefined;
+  getImageJimp: () => JimpClass | undefined;
+  getImageBitmap: () => ImgBitMap | undefined;
+}
+
+export function defaultGetImage(this: GetImage) {
+  const img = this.getImageJimp();
+  if (img) return getJimpPNG(img);
+}
+
+export function defaultGetImageBitmap(this: GetImage) {
+  const bitmap = this.getImageJimp()?.bitmap;
+  if (!bitmap) return;
+  return {
+    data: bitmap.data.buffer as unknown as ArrayBuffer,
+    width: bitmap.width,
+    height: bitmap.height,
+  };
+}
 
 const dumpObject = (obj: any): any => {
   if (typeof obj === 'object') {

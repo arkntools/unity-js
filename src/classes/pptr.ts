@@ -1,3 +1,4 @@
+import { isNotNil } from 'es-toolkit';
 import { ArrayBufferReader } from '../utils/reader';
 import type { ObjectInfo } from './types';
 import type { AssetObject } from '.';
@@ -36,6 +37,32 @@ export class PPtr<T extends AssetObject = AssetObject> {
     if (this.isNull) return 'PPtr<null>';
     const objClass: string = (this.object as any)?.__class ?? 'unknown';
     return `PPtr<${objClass}>`;
+  }
+
+  static fromPlainObject<T extends AssetObject, U extends boolean = true>(
+    info: ObjectInfo,
+    item: { m_FileID: number; m_PathID: bigint },
+    tryCatch: U = true as U,
+    // @ts-ignore
+  ): U extends true ? PPtr<T> | undefined : PPtr<T> {
+    if (tryCatch) {
+      try {
+        return new PPtr<T>(info, item.m_FileID, item.m_PathID);
+      } catch {}
+    } else {
+      return new PPtr<T>(info, item.m_FileID, item.m_PathID);
+    }
+  }
+
+  static fromPlainObjectList<T extends AssetObject>(
+    info: ObjectInfo,
+    list: Array<{ m_FileID: number; m_PathID: bigint }>,
+  ) {
+    return list.map(item => PPtr.fromPlainObject<T>(info, item)).filter(isNotNil);
+  }
+
+  static toObjectList<T extends AssetObject>(list: PPtr<T>[]) {
+    return list.map(item => item.object).filter(isNotNil);
   }
 
   set(obj: T) {

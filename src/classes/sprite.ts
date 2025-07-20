@@ -1,15 +1,15 @@
 import type { SpriteAtlas, Texture2D } from '..';
-import { getJimpPNG } from '../lib/jimp';
 import type { RectF32, Vector2, Vector3, Vector4 } from '../types';
 import { bufferToHex } from '../utils/buffer';
 import type { ArrayBufferReader } from '../utils/reader';
-import { AssetBase } from './base';
+import type { GetImage } from './base';
+import { AssetBase, defaultGetImage, defaultGetImageBitmap } from './base';
 import { SubMesh, VertexData } from './mesh';
 import { PPtr } from './pptr';
-import type { ImgBitMap, ObjectInfo } from './types';
+import type { ObjectInfo } from './types';
 import { AssetType } from './types';
 
-export class Sprite extends AssetBase {
+export class Sprite extends AssetBase implements GetImage {
   readonly type = AssetType.Sprite;
   readonly rect: RectF32;
   readonly offset: Vector2;
@@ -22,6 +22,9 @@ export class Sprite extends AssetBase {
   readonly atlasTags?: string[];
   readonly spriteAtlas?: PPtr<SpriteAtlas>;
   readonly spriteRenderData: SpriteRenderData;
+
+  getImage = defaultGetImage;
+  getImageBitmap = defaultGetImageBitmap;
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
@@ -55,11 +58,6 @@ export class Sprite extends AssetBase {
     this.spriteRenderData = new SpriteRenderData(this.__info, r);
   }
 
-  getImage() {
-    const img = this.getImageJimp();
-    if (img) return getJimpPNG(img);
-  }
-
   getImageJimp() {
     const spriteAtlas = this.spriteAtlas?.object;
     if (spriteAtlas && this.renderDataKey) {
@@ -67,16 +65,6 @@ export class Sprite extends AssetBase {
       if (img) return img;
     }
     return this.spriteRenderData.getImage();
-  }
-
-  getImageBitmap(): ImgBitMap | undefined {
-    const bitmap = this.getImageJimp()?.bitmap;
-    if (!bitmap) return;
-    return {
-      data: bitmap.data.buffer as unknown as ArrayBuffer,
-      width: bitmap.width,
-      height: bitmap.height,
-    };
   }
 }
 

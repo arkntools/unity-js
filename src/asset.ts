@@ -1,5 +1,5 @@
+import { isNotNil } from 'es-toolkit';
 import type { Bundle } from './bundle';
-import type { AssetObject } from './classes';
 import { createAssetObject } from './classes';
 import { ObjectInfo } from './object';
 import { SerializedType } from './serializedType';
@@ -93,6 +93,6 @@ export class Asset {
   }
 
   objects() {
-    return this.objectInfos.map(createAssetObject).filter(o => o) as AssetObject[];
+    return this.objectInfos.map(createAssetObject).filter(isNotNil);
   }
 }

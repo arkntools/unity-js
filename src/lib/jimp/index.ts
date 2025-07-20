@@ -17,4 +17,4 @@ export const Jimp = createJimp({
 export type Jimp = InstanceType<typeof Jimp>;
 
 export const getJimpPNG = <I extends JimpClass>(img: I) =>
-  (img as any as Jimp).getBuffer('image/png');
+  (img as any as Jimp).getBuffer('image/png') as Promise<Buffer<ArrayBuffer>>;

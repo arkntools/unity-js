@@ -1,5 +1,6 @@
 import { AssetBundle } from './assetBundle';
 import { AudioClip } from './audioClip';
+import { Material } from './material';
 import { MonoBehaviour } from './monoBehaviour';
 import { MonoScript } from './monoScript';
 import { Sprite } from './sprite';
@@ -17,7 +18,8 @@ export type AssetObject =
   | AssetBundle
   | MonoBehaviour
   | MonoScript
-  | AudioClip;
+  | AudioClip
+  | Material;
 
 type ImplementedAssetType = keyof typeof classMap;
 
@@ -30,6 +32,7 @@ const classMap = {
   [AssetType.MonoBehaviour]: MonoBehaviour,
   [AssetType.MonoScript]: MonoScript,
   [AssetType.AudioClip]: AudioClip,
+  [AssetType.Material]: Material,
 } as const;
 
 export const createAssetObject = (info: ObjectInfo) => {
