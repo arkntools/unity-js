@@ -2,6 +2,7 @@ import { SpriteSettings } from '..';
 import type { Sprite, Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
 import { bufferToHex } from '../utils/buffer';
+import { loopMap } from '../utils/loop';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';
@@ -17,26 +18,23 @@ export interface SpriteAtlasResult {
 
 export class SpriteAtlas extends AssetBase {
   readonly type = AssetType.SpriteAtlas;
-  readonly packedSprites: Array<PPtr<Sprite>> = [];
-  readonly renderDataMap = new Map<string, SpriteAtlasData>();
+  readonly packedSprites: Array<PPtr<Sprite>>;
+  readonly renderDataMap: Map<string, SpriteAtlasData>;
   readonly isVariant: boolean;
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
 
-    const packedSpritesSize = r.readUInt32();
-    for (let i = 0; i < packedSpritesSize; i++) {
-      this.packedSprites.push(new PPtr(this.__info, r));
-    }
+    this.packedSprites = loopMap(r.readUInt32(), () => new PPtr(this.__info, r));
 
     r.readAlignedStringArray();
 
-    const renderDataMapSize = r.readUInt32();
-    for (let i = 0; i < renderDataMapSize; i++) {
-      const key = bufferToHex(r.readBuffer(24), true);
-      const data = new SpriteAtlasData(this.__info, r);
-      this.renderDataMap.set(key, data);
-    }
+    this.renderDataMap = new Map(
+      loopMap(r.readUInt32(), () => [
+        bufferToHex(r.readBuffer(24), true),
+        new SpriteAtlasData(this.__info, r),
+      ]),
+    );
 
     r.readAlignedString();
 

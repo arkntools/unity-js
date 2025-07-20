@@ -1,3 +1,5 @@
+import { loopMap } from './loop';
+
 export class ArrayBufferReader {
   private offset = 0;
   private readonly view: DataView<ArrayBuffer>;
@@ -86,12 +88,7 @@ export class ArrayBufferReader {
   }
 
   readAlignedStringArray() {
-    const strings: string[] = [];
-    const length = this.readUInt32();
-    for (let i = 0; i < length; i++) {
-      strings.push(this.readAlignedString());
-    }
-    return strings;
+    return loopMap(this.readUInt32(), () => this.readAlignedString());
   }
 
   readBoolean() {
@@ -153,11 +150,7 @@ export class ArrayBufferReader {
   }
 
   readUInt16Array(size: number) {
-    const array: number[] = [];
-    for (let i = 0; i < size; i++) {
-      array.push(this.readUInt16());
-    }
-    return array;
+    return loopMap(size, () => this.readUInt16());
   }
 
   private checkPosition(position: number) {

@@ -1,6 +1,7 @@
 import type { SpriteAtlas, Texture2D } from '..';
 import type { RectF32, Vector2, Vector3, Vector4 } from '../types';
 import { bufferToHex } from '../utils/buffer';
+import { loopEach, loopMap } from '../utils/loop';
 import type { ArrayBufferReader } from '../utils/reader';
 import type { GetImage } from './base';
 import { AssetBase, defaultGetImage, defaultGetImageBitmap } from './base';
@@ -97,20 +98,12 @@ export class SpriteRenderData {
       if (size > 0) throw new Error('SecondarySpriteTexture is not implemented.');
     }
     if (version[0] > 5 || (version[0] === 5 && version[1] >= 6)) {
-      const size = r.readUInt32();
-      this.subMeshes = [];
-      for (let i = 0; i < size; i++) {
-        this.subMeshes.push(new SubMesh(r, version));
-      }
+      this.subMeshes = loopMap(r.readUInt32(), () => new SubMesh(r, version));
       this.indexBuffer = new Uint8Array(r.readBuffer(r.readUInt32()));
       r.align(4);
       this.vertexData = new VertexData(r, version);
     } else {
-      const size = r.readUInt32();
-      this.vertices = [];
-      for (let i = 0; i < size; i++) {
-        this.vertices.push(this.readSpriteVertex(r));
-      }
+      this.vertices = loopMap(r.readUInt32(), () => this.readSpriteVertex(r));
       this.indices = r.readUInt16Array(r.readUInt32());
       r.align(4);
     }
@@ -156,17 +149,13 @@ export class SpriteRenderData {
     if (version[0] < 2018) r.move(4);
     r.move(4);
     if (version[0] >= 4) {
-      const size = r.readInt32();
-      for (let i = 0; i < size; i++) {
-        r.move(4);
-      }
+      loopEach(r.readInt32(), () => r.move(4));
     }
     if (version[0] < 5) {
-      const size = version[0] < 4 ? 4 : r.readInt32();
-      for (let i = 0; i < size; i++) {
+      loopEach(version[0] < 4 ? 4 : r.readInt32(), () => {
         r.move(2);
         r.move(version[0] < 4 ? 8 : 4);
-      }
+      });
     }
     r.move(r.readInt32());
   }
@@ -183,11 +172,9 @@ export class SpriteRenderData {
   }
 
   private readMatrix(r: ArrayBufferReader) {
-    const lenI = r.readUInt32();
-    for (let i = 0; i < lenI; i++) {
-      const lenJ = r.readUInt32();
-      r.move(lenJ * 4);
-    }
+    loopEach(r.readUInt32(), () => {
+      r.move(r.readUInt32() * 4);
+    });
   }
 }
 

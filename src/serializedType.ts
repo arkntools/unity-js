@@ -1,5 +1,6 @@
 import type { AssetHeader } from './asset';
 import { commonString } from './const';
+import { loopEach } from './utils/loop';
 import { ArrayBufferReader } from './utils/reader';
 
 export interface TypeTreeNode {
@@ -85,10 +86,9 @@ export class SerializedType {
           this.nameSpace = r.readStringUntilZero();
           this.asmName = r.readStringUntilZero();
         } else {
-          const length = r.readInt32();
-          for (let i = 0; i < length; i++) {
+          loopEach(r.readInt32(), () => {
             this.typeDependencies.push(r.readInt32());
-          }
+          });
         }
       }
     }
@@ -100,7 +100,7 @@ export class SerializedType {
 
     const nodes: TypeTreeNode[] = [];
 
-    for (let i = 0; i < nodeNumber; i++) {
+    loopEach(nodeNumber, () => {
       const typeTreeNode: TypeTreeNode = {
         version: r.readUInt16(),
         level: r.readUInt8(),
@@ -120,7 +120,7 @@ export class SerializedType {
       }
 
       nodes.push(typeTreeNode);
-    }
+    });
 
     const stringBuffer = r.readBuffer(stringBufferSize);
     const stringBufferReader = new ArrayBufferReader(stringBuffer);

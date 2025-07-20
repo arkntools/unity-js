@@ -2,6 +2,7 @@ import type { JimpClass } from '@jimp/types';
 import { once } from 'es-toolkit';
 import { getJimpPNG } from '../lib/jimp';
 import type { TypeTreeNode } from '../serializedType';
+import { loopEach } from '../utils/loop';
 import type { ArrayBufferReader } from '../utils/reader';
 import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
@@ -207,11 +208,11 @@ export abstract class AssetBase {
         const first = getNodes(map, 4);
         const second = getNodes(map, 4 + first.length);
         const mapValue: Record<string, any> = {};
-        for (let i = 0; i < size; i++) {
+        loopEach(size, () => {
           const key = this.getTypeTreeValue(first, r, { index: 0 });
           const val = this.getTypeTreeValue(second, r, { index: 0 });
           mapValue[key] = val;
-        }
+        });
         value = mapValue;
         break;
       }
@@ -231,9 +232,9 @@ export abstract class AssetBase {
           const vector = getNodes(nodes, ctx.index);
           ctx.index += vector.length - 1;
           const arrayValue: any[] = [];
-          for (let i = 0; i < size; i++) {
+          loopEach(size, () => {
             arrayValue.push(this.getTypeTreeValue(vector, r, { index: 3 }));
-          }
+          });
           value = arrayValue;
         } else {
           const clz = getNodes(nodes, ctx.index);

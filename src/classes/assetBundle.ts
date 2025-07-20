@@ -1,3 +1,4 @@
+import { loopEach } from '../utils/loop';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import { PPtr } from './pptr';
@@ -13,13 +14,11 @@ export class AssetBundle extends AssetBase {
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
 
-    const preloadTableSize = r.readInt32();
-    for (let i = 0; i < preloadTableSize; i++) {
+    loopEach(r.readInt32(), () => {
       this.preloadTable.push(new PPtr(this.__info, r));
-    }
+    });
 
-    const containerSize = r.readInt32();
-    for (let i = 0; i < containerSize; i++) {
+    loopEach(r.readInt32(), () => {
       // eslint-disable-next-line no-new-wrappers
       const path = new String(r.readAlignedString());
       const container = new AssetInfo(this.__info, r);
@@ -30,7 +29,7 @@ export class AssetBundle extends AssetBase {
       this.preloadTable.slice(preloadIndex, preloadEnd).forEach(preload => {
         this.containerMap.set(preload.pathId, path);
       });
-    }
+    });
   }
 }
 

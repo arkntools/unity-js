@@ -3,6 +3,7 @@ import type { Bundle } from './bundle';
 import { createAssetObject } from './classes';
 import { ObjectInfo } from './object';
 import { SerializedType } from './serializedType';
+import { loopEach } from './utils/loop';
 import { ArrayBufferReader } from './utils/reader';
 
 export interface AssetHeader {
@@ -73,21 +74,19 @@ export class Asset {
       this.enableTypeTree = !!r.readUInt8();
     }
 
-    const typeCount = r.readInt32();
-    for (let i = 0; i < typeCount; i++) {
+    loopEach(r.readInt32(), () => {
       const type = new SerializedType(r, header, this.enableTypeTree, false);
       this.types.push(type);
       this.typeMap.set(type.classId, type);
-    }
+    });
 
     if (header.version >= 7 && header.version < 14) {
       this.enableBigId = !!r.readInt32();
     }
 
-    const objectCount = r.readUInt32();
-    for (let i = 0; i < objectCount; i++) {
+    loopEach(r.readUInt32(), () => {
       this.objectInfos.push(new ObjectInfo(this, bundle));
-    }
+    });
 
     // 未实现
   }

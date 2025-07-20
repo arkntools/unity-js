@@ -1,5 +1,6 @@
 import { aesEcbEncrypt } from '#aes';
 import { bufferToString, hexToUInt8Array, toUInt4Array } from './buffer';
+import { loopEach } from './loop';
 import type { ArrayBufferReader } from './reader';
 
 interface DecryptState {
@@ -35,10 +36,10 @@ export class UnityCN {
     const info = toUInt4Array(this.decryptKey(infoKey, infoBytes));
     this.indexTable = info.subarray(0, 0x10);
     const sub = info.subarray(0x10, 0x20);
-    for (let i = 0; i < sub.length; i++) {
+    loopEach(sub.length, i => {
       const idx = Math.floor((i % 4) * 4 + i / 4);
       this.subTable[idx] = sub[i];
-    }
+    });
   }
 
   decryptBlock(bytes: ArrayBuffer, index: number) {
@@ -56,9 +57,9 @@ export class UnityCN {
   private decryptKey(key: ArrayBuffer, data: ArrayBuffer) {
     const encryptedKey = this.encryptWithKey(key);
     const result = new Uint8Array(data);
-    for (let i = 0; i < 0x10; i++) {
+    loopEach(0x10, i => {
       result[i] ^= encryptedKey[i];
-    }
+    });
     return result;
   }
 

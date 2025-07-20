@@ -4,6 +4,7 @@ import { Asset } from './asset';
 import type { AssetObject } from './classes';
 import type { Jimp } from './lib/jimp';
 import { concatArrayBuffer, ensureArrayBuffer } from './utils/buffer';
+import { loopEach } from './utils/loop';
 import { ArrayBufferReader } from './utils/reader';
 import { UnityCN } from './utils/unitycn';
 import { isVersionLargerThanOrEqual, parseVersion } from './utils/version';
@@ -233,26 +234,23 @@ export class Bundle {
     const r = new ArrayBufferReader(blockInfo);
     // const uncompressedDataHash = r.readBuffer(16);
     r.move(16);
-    const blockInfoCount = r.readInt32BE();
 
-    for (let i = 0; i < blockInfoCount; i++) {
+    loopEach(r.readInt32BE(), () => {
       this.blockInfos.push({
         uncompressedSize: r.readUInt32BE(),
         compressedSize: r.readUInt32BE(),
         flags: r.readUInt16BE(),
       });
-    }
+    });
 
-    const nodeCount = r.readInt32BE();
-
-    for (let i = 0; i < nodeCount; i++) {
+    loopEach(r.readInt32BE(), () => {
       this.nodes.push({
         offset: Number(r.readUInt64BE()),
         size: Number(r.readUInt64BE()),
         flags: r.readUInt32BE(),
         path: r.readStringUntilZero(),
       });
-    }
+    });
   }
 
   private readBlocks(r: ArrayBufferReader) {

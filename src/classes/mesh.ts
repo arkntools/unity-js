@@ -1,5 +1,6 @@
 import { maxBy } from 'es-toolkit';
 import type { Vector3 } from '../types';
+import { loopMap } from '../utils/loop';
 import { ArrayBufferReader } from '../utils/reader';
 import { VertexChannelFormat, VertexFormat, VertexFormat2017 } from './types';
 import type { GfxPrimitiveType } from './types';
@@ -55,11 +56,7 @@ export class VertexData {
     }
     this.vertexCount = r.readUInt32();
     if (version[0] >= 4) {
-      const channelsSize = r.readInt32();
-      this.channels = [];
-      for (let i = 0; i < channelsSize; i++) {
-        this.channels.push(new ChannelInfo(r));
-      }
+      this.channels = loopMap(r.readInt32(), () => new ChannelInfo(r));
     }
     if (version[0] < 5) {
       throw new Error('VertexData version[0] < 5 not implemented.');
