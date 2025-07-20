@@ -14,7 +14,7 @@ export class UnityCN {
   private readonly indexTable: Uint8Array;
   private readonly subTable = new Uint8Array(0x10);
 
-  public constructor(r: ArrayBufferReader, keyHex: string) {
+  constructor(r: ArrayBufferReader, keyHex: string) {
     this.key = hexToUInt8Array(keyHex);
 
     r.move(4);
@@ -38,6 +38,13 @@ export class UnityCN {
     for (let i = 0; i < sub.length; i++) {
       const idx = Math.floor((i % 4) * 4 + i / 4);
       this.subTable[idx] = sub[i];
+    }
+  }
+
+  decryptBlock(bytes: ArrayBuffer, index: number) {
+    const size = bytes.byteLength;
+    for (let offset = 0; offset < size; ) {
+      offset += this.decrypt(new Uint8Array(bytes, offset), index++, size - offset);
     }
   }
 
@@ -69,13 +76,6 @@ export class UnityCN {
     state.offset++;
     state.index++;
     return newVal;
-  }
-
-  public decryptBlock(bytes: ArrayBuffer, index: number) {
-    const size = bytes.byteLength;
-    for (let offset = 0; offset < size; ) {
-      offset += this.decrypt(new Uint8Array(bytes, offset), index++, size - offset);
-    }
   }
 
   private decrypt(bytes: Uint8Array, index: number, remaining: number) {

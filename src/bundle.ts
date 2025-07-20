@@ -89,29 +89,19 @@ export interface BundleLoadOptions {
 }
 
 export class Bundle {
-  public readonly header: BundleHeader;
-  public readonly nodes: StorageNode[] = [];
-  public readonly files: ArrayBuffer[] = [];
-  public readonly objectMap = new Map<bigint, AssetObject>();
-  public readonly objects: AssetObject[];
-  public readonly textureMixCache = new Map<string, Jimp>();
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  public readonly containerMap?: Map<bigint, String>;
+  readonly header: BundleHeader;
+  readonly nodes: StorageNode[] = [];
+  readonly files: ArrayBuffer[] = [];
+  readonly objectMap = new Map<bigint, AssetObject>();
+  readonly objects: AssetObject[];
+  readonly textureMixCache = new Map<string, Jimp>();
+  readonly containerMap?: Map<bigint, String>;
   private readonly blockInfos: StorageBlock[] = [];
   private unityCN?: UnityCN;
 
-  static async load(data: Buffer | ArrayBuffer | Uint8Array, options?: BundleLoadOptions) {
-    const r = new ArrayBufferReader(await unzipIfNeed(ensureArrayBuffer(data)));
-    return new Bundle(r, options);
-  }
-
-  getContainer(pathId: bigint): string | undefined {
-    return this.containerMap?.get(pathId)?.toString();
-  }
-
   private constructor(
     r: ArrayBufferReader,
-    public readonly options?: BundleLoadOptions,
+    readonly options?: BundleLoadOptions,
   ) {
     const signature = r.readStringUntilZero();
     const version = r.readUInt32BE();
@@ -170,6 +160,15 @@ export class Bundle {
         }
       }
     }
+  }
+
+  static async load(data: Buffer | ArrayBuffer | Uint8Array, options?: BundleLoadOptions) {
+    const r = new ArrayBufferReader(await unzipIfNeed(ensureArrayBuffer(data)));
+    return new Bundle(r, options);
+  }
+
+  getContainer(pathId: bigint): string | undefined {
+    return this.containerMap?.get(pathId)?.toString();
   }
 
   private readHeader(r: ArrayBufferReader) {

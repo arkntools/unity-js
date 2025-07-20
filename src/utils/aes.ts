@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export const aesEcbEncrypt = (data: ArrayBuffer, key: Uint8Array): Uint8Array => {
   const cipher = crypto.createCipheriv('aes-128-ecb', key, null);

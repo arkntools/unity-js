@@ -3,7 +3,7 @@ export const parseVersion = (version: string) =>
     .replace(/\D/g, '.')
     .split('.')
     .filter(Boolean)
-    .map(str => parseInt(str));
+    .map(str => Number.parseInt(str));
 
 export const isVersionLargerThanOrEqual = (version: number[], target: number[]) => {
   const maxLength = Math.max(version.length, target.length);

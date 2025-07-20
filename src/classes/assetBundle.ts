@@ -7,9 +7,7 @@ import { AssetType } from './types';
 export class AssetBundle extends AssetBase {
   readonly type = AssetType.AssetBundle;
   readonly preloadTable: PPtr[] = [];
-  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly containers: Array<PairData<String, AssetInfo>> = [];
-  // eslint-disable-next-line @typescript-eslint/ban-types
   readonly containerMap = new Map<bigint, String>();
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {

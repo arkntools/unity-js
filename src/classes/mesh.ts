@@ -1,12 +1,8 @@
 import { maxBy } from 'es-toolkit';
 import type { Vector3 } from '../types';
 import { ArrayBufferReader } from '../utils/reader';
-import {
-  VertexChannelFormat,
-  VertexFormat,
-  VertexFormat2017,
-  type GfxPrimitiveType,
-} from './types';
+import { VertexChannelFormat, VertexFormat, VertexFormat2017 } from './types';
+import type { GfxPrimitiveType } from './types';
 
 export class SubMesh {
   readonly firstByte: number;

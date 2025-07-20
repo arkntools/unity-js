@@ -2,7 +2,7 @@ import _Jimp from 'jimp';
 
 export type Jimp = _Jimp;
 
-// eslint-disable-next-line @typescript-eslint/no-redeclare
+// eslint-disable-next-line ts/no-redeclare
 export const Jimp: typeof _Jimp =
   typeof _Jimp?.read === 'function'
     ? _Jimp

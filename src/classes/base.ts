@@ -55,8 +55,8 @@ const getNodes = (nodes: TypeTreeNode[], index: number): TypeTreeNode[] => {
 };
 
 export abstract class AssetBase {
-  abstract readonly type: AssetType;
   readonly name: string = '';
+  abstract readonly type: AssetType;
 
   constructor(
     protected readonly __info: ObjectInfo,
@@ -81,11 +81,6 @@ export abstract class AssetBase {
 
   protected get __class() {
     return AssetType[this.type] || 'unknown';
-  }
-
-  protected readName(r: ArrayBufferReader) {
-    // @ts-expect-error
-    this.name = r.readAlignedString();
   }
 
   dump(): Record<string, any> {
@@ -117,6 +112,11 @@ export abstract class AssetBase {
     }
 
     return result.Base ?? result;
+  }
+
+  protected readName(r: ArrayBufferReader) {
+    // @ts-expect-error
+    this.name = r.readAlignedString();
   }
 
   private getTypeTreeValue(nodes: TypeTreeNode[], r: ArrayBufferReader, ctx: { index: number }) {

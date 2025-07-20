@@ -25,15 +25,15 @@
     },
     "./class/*": {
       "types": "./dist/class/*.d.ts",
-      "require": "./dist/class/*.js"
+      "default": "./dist/class/*.js"
     },
     "./utils/*": {
       "types": "./dist/utils/*.d.ts",
-      "require": "./dist/utils/*.js"
+      "default": "./dist/utils/*.js"
     },
     "./*": {
       "types": "./dist/*.d.ts",
-      "require": "./dist/*.js"
+      "default": "./dist/*.js"
     }
   },
   "author": "神代綺凛 <i@loli.best>",
@@ -47,13 +47,14 @@
   ],
   "scripts": {
     "build": "rimraf dist && tsc",
+    "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "postversion": "tpv"
   },
   "dependencies": {
     "@arkntools/unity-js-tools": "^3.2.0",
     "aes-js": "^3.1.2",
-    "es-toolkit": "^1.39.6",
+    "es-toolkit": "^1.39.7",
     "jimp": "^0.22.12",
     "jszip": "^3.10.1"
   },
@@ -61,17 +62,12 @@
     "node-web-audio-api": "^1.0.4"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^4.17.0",
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/aes-js": "^3.1.4",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.57.1",
-    "eslint-config-love": "^47.0.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.10.1",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-n": "^17.21.0",
-    "eslint-plugin-promise": "^6.6.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "jiti": "^2.4.2",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",

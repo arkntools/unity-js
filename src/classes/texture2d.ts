@@ -1,8 +1,9 @@
 import { last } from 'es-toolkit';
-import { SpritePackingMode, SpritePackingRotation, type SpriteSettings } from '..';
+import { SpritePackingMode, SpritePackingRotation } from '..';
+import type { SpriteSettings } from '..';
 import type { RectF32 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
-import { Jimp, getJimpPNG, simpleRotate } from '../utils/jimp';
+import { getJimpPNG, Jimp, simpleRotate } from '../utils/jimp';
 import { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
 import type { ImgBitMap, ObjectInfo } from './types';

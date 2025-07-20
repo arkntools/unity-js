@@ -109,7 +109,7 @@ export class MonoBehaviour extends AssetBase {
         try {
           this.sprites = typeTree._sprites.map(({ name, guid, atlas, rect, rotate }) => {
             const atlasInfo = atlases[atlas];
-            if (!atlasInfo) throw new Error();
+            if (!atlasInfo) throw new Error('atlasInfo not found');
             return new AtlasSprite(name, guid, atlasInfo, rect, rotate);
           });
         } catch {}

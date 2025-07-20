@@ -4,8 +4,7 @@ import { bufferToHex } from '../utils/buffer';
 import { getJimpPNG } from '../utils/jimp';
 import type { ArrayBufferReader } from '../utils/reader';
 import { AssetBase } from './base';
-import { VertexData, SubMesh } from './mesh';
-
+import { SubMesh, VertexData } from './mesh';
 import { PPtr } from './pptr';
 import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
@@ -147,7 +146,7 @@ export class SpriteRenderData {
     }
   }
 
-  public getImage() {
+  getImage() {
     const textureObj = this.texture.object;
     return textureObj?.getTransformedImageJimp(
       this,

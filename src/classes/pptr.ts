@@ -20,7 +20,7 @@ export class PPtr<T extends AssetObject = AssetObject> {
       this.fileId = r;
       this.pathId = pathId;
     } else {
-      throw new Error('PPtr invalid arguments');
+      throw new TypeError('PPtr invalid arguments');
     }
   }
 

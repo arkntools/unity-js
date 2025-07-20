@@ -76,7 +76,7 @@ export class SpriteAtlasData {
     }
   }
 
-  public getImage() {
+  getImage() {
     const textureObj = this.texture.object;
     return textureObj?.getTransformedImageJimp(this, this.alphaTexture.object);
   }

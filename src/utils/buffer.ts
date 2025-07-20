@@ -14,7 +14,7 @@ export const toUInt4Array = (data: Uint8Array) => {
 
 export const hexToUInt8Array = (hex: string) => {
   if (hex.length % 2 !== 0) throw new Error('Length is not a multiple of 2');
-  return new Uint8Array((hex.match(/[\da-f]{2}/gi) || []).map(h => parseInt(h, 16)));
+  return new Uint8Array((hex.match(/[\da-f]{2}/gi) || []).map(h => Number.parseInt(h, 16)));
 };
 
 export const bufferToHex = (buffer: ArrayBuffer, allZeroToEmpty = false) => {

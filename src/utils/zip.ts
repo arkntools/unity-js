@@ -4,7 +4,7 @@ const matchHeader = (data: ArrayBuffer, header: Array<number | number[]>) => {
   const view = new Uint8Array(data, 0, header.length);
   return header.every((val, i) => {
     const cur = view[i];
-    return typeof val === 'number' ? val === cur : val.some(v => v === cur);
+    return typeof val === 'number' ? val === cur : val.includes(cur);
   });
 };
 

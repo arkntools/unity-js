@@ -1,19 +1,20 @@
 import { Bundle } from './bundle';
+
 export * from './bundle';
 export const loadAssetBundle = Bundle.load;
 
-export * from './utils/jimp';
-export * from './utils/reader';
+export * from './classes/assetBundle';
+export * from './classes/audioClip';
 
-export { AssetType, type ImgBitMap } from './classes/types';
 export type { AssetObject } from './classes/index';
+export * from './classes/monoBehaviour';
 
+export * from './classes/monoScript';
 export * from './classes/pptr';
-export * from './classes/textAsset';
-export * from './classes/texture2d';
 export * from './classes/sprite';
 export * from './classes/spriteAtlas';
-export * from './classes/assetBundle';
-export * from './classes/monoBehaviour';
-export * from './classes/monoScript';
-export * from './classes/audioClip';
+export * from './classes/textAsset';
+export * from './classes/texture2d';
+export { AssetType, type ImgBitMap } from './classes/types';
+export * from './utils/jimp';
+export * from './utils/reader';
