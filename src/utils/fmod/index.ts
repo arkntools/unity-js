@@ -137,7 +137,7 @@ export const fsbToWav = async ({
   const sound = createWrapper(system.$createSound(data, FMOD.OPENMEMORY, exinfo, SYMBOL.OUTVAR));
   const subSoundsNum = sound.$getNumSubSounds(SYMBOL.OUTVAR);
 
-  let result: Uint8Array;
+  let result: Uint8Array<ArrayBuffer>;
 
   if (subSoundsNum) {
     const subSound = createWrapper(sound.$getSubSound(0, SYMBOL.OUTVAR));

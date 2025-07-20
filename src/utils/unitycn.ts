@@ -11,8 +11,8 @@ interface DecryptState {
 const SIGNATURE = '#$unity3dchina!@';
 
 export class UnityCN {
-  private readonly key: Uint8Array;
-  private readonly indexTable: Uint8Array;
+  private readonly key: Uint8Array<ArrayBuffer>;
+  private readonly indexTable: Uint8Array<ArrayBuffer>;
   private readonly subTable = new Uint8Array(0x10);
 
   constructor(r: ArrayBufferReader, keyHex: string) {

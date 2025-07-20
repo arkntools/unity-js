@@ -73,7 +73,7 @@ export class SpriteRenderData {
   readonly texture: PPtr<Texture2D>;
   readonly alphaTexture?: PPtr<Texture2D>;
   readonly subMeshes?: SubMesh[];
-  readonly indexBuffer?: Uint8Array;
+  readonly indexBuffer?: Uint8Array<ArrayBuffer>;
   readonly vertexData?: VertexData;
   readonly vertices?: SpriteVertex[];
   readonly indices?: number[];

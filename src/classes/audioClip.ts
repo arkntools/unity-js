@@ -103,7 +103,7 @@ export class AudioClip extends AssetBase {
   readonly source?: string;
   readonly offset?: bigint;
   readonly audioSize: bigint;
-  readonly data: Uint8Array;
+  readonly data: Uint8Array<ArrayBuffer>;
   readonly format: string;
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {

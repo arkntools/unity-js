@@ -48,7 +48,7 @@ export class VertexData {
   readonly vertexCount: number;
   readonly channels?: ChannelInfo[];
   readonly streams?: StreamInfo[];
-  readonly dataSize: Uint8Array;
+  readonly dataSize: Uint8Array<ArrayBuffer>;
 
   constructor(r: ArrayBufferReader, version: number[]) {
     if (version[0] < 2018) {

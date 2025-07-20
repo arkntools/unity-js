@@ -198,7 +198,7 @@ class TextureDecoder {
 
   constructor(
     private readonly texture: Texture2D,
-    private rawData: Uint8Array,
+    private rawData: Uint8Array<ArrayBuffer>,
   ) {}
 
   get data() {

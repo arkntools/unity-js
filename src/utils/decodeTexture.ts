@@ -68,7 +68,7 @@ const funcMap: Partial<Record<TF, DecodeFunction>> = {
   [TF.PVRTC_RGBA2]: decodePvrtc2bpp,
   [TF.PVRTC_RGB4]: decodePvrtc4bpp,
   [TF.PVRTC_RGBA4]: decodePvrtc4bpp,
-};
+} as any;
 
 const bgra2rgba = (data: Uint8Array) => {
   for (let i = 0; i + 3 < data.length; i += 4) {
@@ -88,5 +88,5 @@ export const decodeTexture = (
   if (!decodeFunc) {
     throw new Error(`Texture2d format "${format}" decoder is not implemented. (${name})`);
   }
-  return bgra2rgba(decodeFunc(data, width, height));
+  return bgra2rgba(decodeFunc(data, width, height)) as Uint8Array<ArrayBuffer>;
 };
