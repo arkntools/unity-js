@@ -1,6 +1,7 @@
 import FMOD from '@arkntools/fmod';
-import { once } from 'es-toolkit';
+import { clamp, once } from 'es-toolkit';
 import { windowForFMOD } from '#windowForFMOD';
+import { encodeMP3 } from '../lame';
 
 const SYMBOL = {
   OUTVAR: Symbol('outvar'),
@@ -68,8 +69,7 @@ const soundToWav = (FMOD: any, sound: any) => {
     SYMBOL.OUTVAR,
     SYMBOL.OUTVAR,
   );
-  const frequency = sound.$getDefaults(SYMBOL.OUTVAR, SYMBOL.OUTVAR_DISMISS);
-  const sampleRate = Math.floor(frequency);
+  const sampleRate = Math.floor(sound.$getDefaults(SYMBOL.OUTVAR, SYMBOL.OUTVAR_DISMISS));
   const length = sound.$getLength(SYMBOL.OUTVAR, FMOD.TIMEUNIT_PCMBYTES);
   const [ptr1, ptr2, len1, len2] = sound.$lock(
     0,
@@ -97,7 +97,7 @@ const soundToWav = (FMOD: any, sound: any) => {
   }
 
   const textEncoder = new TextEncoder();
-  const buffer = new Uint8Array(len1 + 44);
+  const buffer = new Uint8Array<ArrayBuffer>(len1 + 44);
 
   buffer.set(textEncoder.encode('RIFF'), 0);
   buffer.set(numberToBits(len1 + 36), 4);
@@ -120,15 +120,70 @@ const soundToWav = (FMOD: any, sound: any) => {
   return buffer;
 };
 
-export const fsbToWav = async ({
-  data,
-  size,
-  channels = 1,
-}: {
-  data: Uint8Array;
-  size: number;
-  channels?: number;
-}) => {
+const soundToMp3 = async (FMOD: any, sound: any) => {
+  const [format, channels] = sound.$getFormat(
+    SYMBOL.OUTVAR_DISMISS,
+    SYMBOL.OUTVAR,
+    SYMBOL.OUTVAR,
+    SYMBOL.OUTVAR_DISMISS,
+  );
+
+  if (format !== FMOD.SOUND_FORMAT_PCMFLOAT) {
+    throw new Error(`[soundToMp3] not supported for format ${format} yet`);
+  }
+
+  if (channels > 1) {
+    throw new Error('[soundToMp3] not supported for stereo yet');
+  }
+
+  const sampleRate = Math.floor(sound.$getDefaults(SYMBOL.OUTVAR, SYMBOL.OUTVAR_DISMISS));
+  const length = sound.$getLength(SYMBOL.OUTVAR, FMOD.TIMEUNIT_PCMBYTES);
+  const [ptr1, ptr2, len1, len2] = sound.$lock(
+    0,
+    length,
+    SYMBOL.OUTVAR,
+    SYMBOL.OUTVAR,
+    SYMBOL.OUTVAR,
+    SYMBOL.OUTVAR,
+  );
+
+  const heap: Uint8Array = FMOD.HEAPU8;
+
+  const f32pcm = new Float32Array(heap.slice(ptr1, ptr1 + len1).buffer).map(v => clamp(v, -1, 1));
+
+  const mp3 = await encodeMP3(f32pcm, {
+    sampleRate,
+    stereo: false,
+    vbrQuality: 0,
+  });
+
+  sound.$unlock(ptr1, ptr2, len1, len2);
+
+  return mp3;
+};
+
+export enum FsbConvertFormat {
+  WAV = 'wav',
+  MP3 = 'mp3',
+}
+
+const converters = {
+  [FsbConvertFormat.WAV]: soundToWav,
+  [FsbConvertFormat.MP3]: soundToMp3,
+};
+
+export const convertFsb = async (
+  {
+    data,
+    size,
+    channels = 1,
+  }: {
+    data: Uint8Array;
+    size: number;
+    channels?: number;
+  },
+  target: FsbConvertFormat,
+) => {
   const { FMOD, system } = await initFMODSystem(channels);
 
   const exinfo = FMOD.CREATESOUNDEXINFO();
@@ -138,16 +193,27 @@ export const fsbToWav = async ({
   const subSoundsNum = sound.$getNumSubSounds(SYMBOL.OUTVAR);
 
   let result: Uint8Array<ArrayBuffer>;
+  let error: any;
 
   if (subSoundsNum) {
     const subSound = createWrapper(sound.$getSubSound(0, SYMBOL.OUTVAR));
-    result = soundToWav(FMOD, subSound);
+    try {
+      result = await converters[target](FMOD, subSound);
+    } catch (e) {
+      error = e;
+    }
     subSound.release();
   } else {
-    result = soundToWav(FMOD, sound);
+    try {
+      result = await converters[target](FMOD, sound);
+    } catch (e) {
+      error = e;
+    }
   }
 
   sound.release();
 
-  return result;
+  if (error) throw error;
+
+  return result!;
 };

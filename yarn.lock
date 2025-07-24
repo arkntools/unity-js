@@ -55,6 +55,9 @@
 "@arkntools/fmod@file:./lib/fmod":
   version "1.0.0"
 
+"@arkntools/lame-wasm@file:./lib/lame-wasm":
+  version "1.0.0"
+
 "@arkntools/unity-js-tools-wasm@3.2.0":
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/@arkntools/unity-js-tools-wasm/-/unity-js-tools-wasm-3.2.0.tgz#30254c8d259188f9047373f08c640e992298f24e"

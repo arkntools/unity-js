@@ -1,0 +1,12 @@
+{
+  "name": "@arkntools/lame-wasm",
+  "version": "1.0.0",
+  "main": "./dist/lame.js",
+  "types": "./dist/lame.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npx tsc"
+  }
+}

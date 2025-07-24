@@ -143,18 +143,18 @@ export class MonoBehaviour extends AssetBase {
 
       if (!size(atlas) || !materials.length) return;
 
-      const images: Record<string, ArrayBuffer> = {};
+      const image: Record<string, ArrayBuffer> = {};
       await Promise.allSettled(
         materials.map(async material => {
           const name = material.getImageName();
           if (!name) return;
-          const image = await material.getImage();
-          if (image) images[`${name}.png`] = image.buffer;
+          const imageFile = await material.getImage();
+          if (imageFile) image[`${name}.png`] = imageFile.buffer;
         }),
       );
-      if (!size(images)) return;
+      if (!size(image)) return;
 
-      return { skel, atlas, images };
+      return { skel, atlas, image };
     } catch {}
   }
 }

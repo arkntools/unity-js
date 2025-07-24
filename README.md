@@ -70,15 +70,15 @@ for (const obj of bundle.objects) {
 ### Audio
 
 > [!WARNING]
-> If `fsbToWav()` is executed in a Node environment, the process can't exit for unknown reasons (possibly due to internal implementation issues with `FMOD` causing `node-web-audio-api` to not be properly released). Please manually call `process.exit()`.
+> If `convertFsb()` is executed in a Node environment, the process can't exit for unknown reasons (possibly due to internal implementation issues with `FMOD` causing `node-web-audio-api` to not be properly released). Please manually call `process.exit()`.
 
 > [!NOTE]
-> `fsbToWav()` require [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API), so it can't be called inside worker.
+> `convertFsb()` require [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API), so it can't be called inside worker.
 
 ```js
 import fs from 'fs';
 import { loadAssetBundle, AssetType, BundleEnv } from '@arkntools/unity-js';
-import { fsbToWav } from '@arkntools/unity-js/audio';
+import { convertFsb, FsbConvertFormat } from '@arkntools/unity-js/audio';
 
 const bundle = await loadAssetBundle(
   fs.readFileSync('audio_sound_beta_2_voice_char_002_amiya.dat'),
@@ -89,7 +89,9 @@ for (const obj of bundle.objects) {
   if (obj.type === AssetType.AudioClip) {
     const audio = await obj.getAudio();
     if (audio.format === 'fsb') {
-      fs.writeFileSync(`${obj.name}.wav`, await fsbToWav(audio));
+      // Support conversion to mp3 or wav
+      fs.writeFileSync(`${obj.name}.mp3`, await convertFsb(audio, FsbConvertFormat.MP3));
+      fs.writeFileSync(`${obj.name}.wav`, await convertFsb(audio, FsbConvertFormat.WAV));
     } else {
       fs.writeFileSync(`${obj.name}.${audio.format}`, audio.data);
     }
@@ -114,8 +116,8 @@ for (const obj of bundle.objects) {
     if (!data) continue;
     const dir = crypto.randomUUID();
     fs.mkdirSync(dir);
-    const { skel, atlas, images } = data;
-    Object.entries({ ...skel, ...atlas, ...images }).forEach(([name, buffer]) => {
+    const { skel, atlas, image } = data;
+    Object.entries({ ...skel, ...atlas, ...image }).forEach(([name, buffer]) => {
       fs.writeFileSync(`${dir}/${name}`, Buffer.from(buffer));
     });
   }

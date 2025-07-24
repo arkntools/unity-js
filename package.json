@@ -1,6 +1,6 @@
 {
   "name": "@arkntools/unity-js",
-  "version": "3.4.2",
+  "version": "4.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -52,7 +52,8 @@
   },
   "files": [
     "dist",
-    "lib"
+    "lib",
+    "src"
   ],
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -62,6 +63,7 @@
   },
   "dependencies": {
     "@arkntools/fmod": "file:./lib/fmod",
+    "@arkntools/lame-wasm": "file:./lib/lame-wasm",
     "@arkntools/unity-js-tools": "^3.2.0",
     "@jimp/core": "^1.6.0",
     "@jimp/js-png": "^1.6.0",

@@ -24,7 +24,7 @@ export default antfu(
     jsonc: false,
     yaml: false,
     markdown: false,
-    ignores: ['/dist', '/test', '**/*.js'],
+    ignores: ['./dist', './test', './lib', '**/*.js'],
   },
   prettierConfig as Linter.Config,
   {
