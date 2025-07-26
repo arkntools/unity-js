@@ -1,7 +1,7 @@
 import FMOD from '@arkntools/fmod';
 import { clamp, once } from 'es-toolkit';
-import { windowForFMOD } from '#windowForFMOD';
 import { encodeMP3 } from '../lame';
+import { windowForFMOD } from './window';
 
 const SYMBOL = {
   OUTVAR: Symbol('outvar'),

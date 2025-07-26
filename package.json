@@ -4,23 +4,11 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "import": {
-    "#aes": {
-      "node": "./dist/utils/aes.js",
-      "default": "./dist/utils/aes.browser.js"
-    },
-    "#windowForFMOD": {
-      "node": "./dist/utils/fmod/window.js",
-      "default": "./dist/utils/fmod/window.browser.js"
-    },
-    "#buffer": {
-      "node": "./dist/lib/buffer/index.js",
-      "default": "./dist/lib/buffer/index.browser.js"
-    },
-    "#jimp/png": {
-      "browser": "@jimp/wasm-png",
-      "default": "@jimp/js-png"
-    }
+  "browser": {
+    "./dist/utils/aes.js": "./dist/utils/aes.browser.js",
+    "./dist/utils/fmod/window.js": "./dist/utils/fmod/window.browser.js",
+    "./dist/lib/buffer/index.js": "./dist/lib/buffer/index.browser.js",
+    "./dist/lib/jimp/png.js": "./dist/lib/jimp/png.browser.js"
   },
   "exports": {
     ".": {
@@ -62,8 +50,8 @@
     "postversion": "tpv"
   },
   "dependencies": {
-    "@arkntools/fmod": "^1.0.1",
-    "@arkntools/lame-wasm": "^1.0.1",
+    "@arkntools/fmod": "^1.0.4",
+    "@arkntools/lame-wasm": "^1.0.2",
     "@arkntools/unity-js-tools": "^3.2.0",
     "@jimp/core": "^1.6.0",
     "@jimp/js-png": "^1.6.0",

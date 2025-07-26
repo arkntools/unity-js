@@ -1,12 +1,12 @@
-import '#buffer';
+import '../buffer';
 import { createJimp } from '@jimp/core';
 import { methods as crop } from '@jimp/plugin-crop';
 import { methods as flip } from '@jimp/plugin-flip';
 import { methods as resize } from '@jimp/plugin-resize';
 import { methods as rotate } from '@jimp/plugin-rotate';
 import type { JimpClass } from '@jimp/types';
-import png from '#jimp/png';
 import { mixAlpha } from './plugins/mixAlpha';
+import png from './png';
 
 export const Jimp = createJimp({
   formats: [png],

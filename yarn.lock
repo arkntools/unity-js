@@ -52,15 +52,15 @@
     package-manager-detector "^1.3.0"
     tinyexec "^1.0.1"
 
-"@arkntools/fmod@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@arkntools/fmod/-/fmod-1.0.1.tgz#5c7eea5e08943e0f8b4cddb937fc490e4a03761c"
-  integrity sha512-P242M+2v0N2qkZgdnXAHfVcAODm8XBnakW+NZQyDKjhhdrYKFEzlJDqmyHG3DgBEFlLoryAgKdGmPxDylPOJcQ==
+"@arkntools/fmod@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@arkntools/fmod/-/fmod-1.0.4.tgz#b5314735e33294fe0fa656dd3ea37b5ee9d05a01"
+  integrity sha512-Xs084PhEePqbWneBAxGHrgIJ6DZujUjmMpFX9+S6F25MxZQ+DrdkM3NNPowk3pESxli6kUohbnHD3fSRdk1nvw==
 
-"@arkntools/lame-wasm@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@arkntools/lame-wasm/-/lame-wasm-1.0.1.tgz#502ece4f01616f13f909a22a830a112436cd11af"
-  integrity sha512-gmvcekq134nUtrc3zSpfDmNLD8erJQP9bfBuKNagxRkufmQVyPN4NWQJ+CVYEkuvm7aiElhFw3EO6HlL8WXrlA==
+"@arkntools/lame-wasm@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@arkntools/lame-wasm/-/lame-wasm-1.0.2.tgz#586c877d9be67221d2060ca3914a0e1e0ba6f10f"
+  integrity sha512-N3QENyQYAy0I/4QjbknIg2lLYcWlSvQu6zx/jUmsEGNxME+oUoQR9DehDVdDaEyo2yX2Y3lpmCrqom3TAv0d5w==
 
 "@arkntools/unity-js-tools-wasm@3.2.0":
   version "3.2.0"

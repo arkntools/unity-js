@@ -12,13 +12,7 @@
     "noImplicitAny": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "skipLibCheck": true,
-    "paths": {
-      "#aes": ["./src/utils/aes.ts"],
-      "#windowForFMOD": ["./src/utils/fmod/window.ts"],
-      "#buffer": ["./src/lib/buffer/index.ts"],
-      "#jimp/png": ["./node_modules/@jimp/js-png/src/index.ts"]
-    }
+    "skipLibCheck": true
   },
   "include": ["src/**/*"]
 }
