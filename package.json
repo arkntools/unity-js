@@ -62,8 +62,8 @@
     "postversion": "tpv"
   },
   "dependencies": {
-    "@arkntools/fmod": "file:./lib/fmod",
-    "@arkntools/lame-wasm": "file:./lib/lame-wasm",
+    "@arkntools/fmod": "^1.0.1",
+    "@arkntools/lame-wasm": "^1.0.1",
     "@arkntools/unity-js-tools": "^3.2.0",
     "@jimp/core": "^1.6.0",
     "@jimp/js-png": "^1.6.0",
