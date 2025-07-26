@@ -66,6 +66,13 @@ export default antfu(
           ],
         },
       ],
+      'perfectionist/sort-exports': [
+        'warn',
+        {
+          ignoreCase: false,
+          partitionByNewLine: true,
+        },
+      ],
     },
   },
 );
