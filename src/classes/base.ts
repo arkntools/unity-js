@@ -100,7 +100,7 @@ export abstract class AssetBase {
   }
 
   get container() {
-    return this.__info.bundle.containerMap?.get(this.pathId) ?? '';
+    return this.__info.bundle.getContainer(this.pathId);
   }
 
   protected get __class() {

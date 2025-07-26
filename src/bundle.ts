@@ -168,8 +168,8 @@ export class Bundle {
     return new Bundle(r, options);
   }
 
-  getContainer(pathId: bigint): string | undefined {
-    return this.containerMap?.get(pathId)?.toString();
+  getContainer(pathId: bigint): string {
+    return this.containerMap?.get(pathId)?.toString() || '';
   }
 
   private readHeader(r: ArrayBufferReader) {
