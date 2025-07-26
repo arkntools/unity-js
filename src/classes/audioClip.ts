@@ -81,6 +81,13 @@ export type AudioClipMeta =
       compressionFormat: AudioCompressionFormat;
     };
 
+export interface AudioClipGetResult {
+  format: string;
+  size: number;
+  channels: number | undefined;
+  data: Uint8Array<ArrayBuffer>;
+}
+
 const magicNumbers: FileMagicNumber[] = [
   {
     name: 'ogg',
@@ -182,7 +189,7 @@ export class AudioClip extends AssetBase {
     this.format = recognizeFile(this.data, magicNumbers) || 'fsb';
   }
 
-  getAudio() {
+  getAudio(): AudioClipGetResult {
     return {
       format: this.format,
       size: Number(this.audioSize),
