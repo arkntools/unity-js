@@ -42,6 +42,11 @@
     "lib",
     "src"
   ],
+  "keywords": [
+    "arknights",
+    "unity",
+    "asset-bundle"
+  ],
   "scripts": {
     "build": "rimraf dist && tsc",
     "lint": "eslint . --ext .ts",
