@@ -8,7 +8,7 @@ import type { MonoScript } from './monoScript';
 import { PPtr } from './pptr';
 import type { TextAsset } from './textAsset';
 import type { Texture2D } from './texture2d';
-import type { ObjectInfo } from './types';
+import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
 
 class AtlasInfo implements GetImage {
@@ -47,6 +47,12 @@ class AtlasSprite implements GetImage {
     const alpha = this.atlas.alpha.object;
     return texture?.getTransformedImageJimp({ textureRect: this.rect }, alpha);
   }
+}
+
+export interface MonoBehaviourSpine<T> {
+  skel: Record<string, ArrayBuffer>;
+  atlas: Record<string, ArrayBuffer>;
+  image: Record<string, T>;
 }
 
 export class MonoBehaviour extends AssetBase {
@@ -124,38 +130,40 @@ export class MonoBehaviour extends AssetBase {
     return !!(this.atlasAssets?.[0]?.object && this.skeletonJSON?.object?.data);
   }
 
-  async getSpine() {
-    try {
-      const atlasAssets = PPtr.toObjectList(this.atlasAssets || []);
-      const skelAsset = this.skeletonJSON?.object;
-      if (!atlasAssets.length || !skelAsset) return;
+  async getSpine<T extends boolean = false>(
+    getImageBitMap?: T,
+  ): Promise<MonoBehaviourSpine<T extends true ? ImgBitMap : ArrayBuffer> | undefined> {
+    const atlasAssets = PPtr.toObjectList(this.atlasAssets || []);
+    const skelAsset = this.skeletonJSON?.object;
+    if (!atlasAssets.length || !skelAsset) return;
 
-      const skel: Record<string, ArrayBuffer> = { [skelAsset.name]: skelAsset.data };
-      const atlas: Record<string, ArrayBuffer> = {};
-      const materials: Material[] = [];
+    const skel: Record<string, ArrayBuffer> = { [skelAsset.name]: skelAsset.data };
+    const atlas: Record<string, ArrayBuffer> = {};
+    const materials: Material[] = [];
 
-      for (const atlasAsset of atlasAssets) {
-        const atlasFile = atlasAsset.atlasFile?.object;
-        const atlasMaterials = PPtr.toObjectList(atlasAsset.materials || []);
-        if (atlasFile) atlas[atlasFile.name] = atlasFile.data;
-        materials.push(...atlasMaterials);
-      }
+    for (const atlasAsset of atlasAssets) {
+      const atlasFile = atlasAsset.atlasFile?.object;
+      const atlasMaterials = PPtr.toObjectList(atlasAsset.materials || []);
+      if (atlasFile) atlas[atlasFile.name] = atlasFile.data;
+      materials.push(...atlasMaterials);
+    }
 
-      if (!size(atlas) || !materials.length) return;
+    if (!size(atlas) || !materials.length) return;
 
-      const image: Record<string, ArrayBuffer> = {};
-      await Promise.allSettled(
-        materials.map(async material => {
-          const name = material.getImageName();
-          if (!name) return;
-          const imageFile = await material.getImage();
-          if (imageFile) image[`${name}.png`] = imageFile.buffer;
-        }),
-      );
-      if (!size(image)) return;
+    const image: Record<string, T extends true ? ImgBitMap : ArrayBuffer> = {};
+    await Promise.allSettled(
+      materials.map(async material => {
+        const name = material.getImageName();
+        if (!name) return;
+        const data = getImageBitMap
+          ? await material.getImageBitmap()
+          : (await material.getImage())?.buffer;
+        if (data) image[`${name}.png`] = data as any;
+      }),
+    );
+    if (!size(image)) return;
 
-      return { skel, atlas, image };
-    } catch {}
+    return { skel, atlas, image };
   }
 }
 

@@ -124,6 +124,34 @@ for (const obj of bundle.objects) {
 }
 ```
 
+## Use in web environment
+
+This package supports use in a web environment, but you need to polyfill `Buffer`, and Vite needs to exclude the `@jimp/wasm-png` module from optimization.
+
+Example `vite.config.ts`:
+
+```ts
+import { defineConfig } from 'vite';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
+
+export default defineConfig({
+  plugins: [
+    nodePolyfills({
+      include: ['buffer'],
+      globals: {
+        Buffer: true,
+      },
+    }),
+    // ...
+  ],
+  optimizeDeps: {
+    exclude: ['@jimp/wasm-png'],
+  },
+  // ...
+});
+```
+
+
 ## References
 
 - [Perfare/AssetStudio](https://github.com/Perfare/AssetStudio)

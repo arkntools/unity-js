@@ -1,4 +1,3 @@
-import '../buffer';
 import { createJimp } from '@jimp/core';
 import { methods as crop } from '@jimp/plugin-crop';
 import { methods as flip } from '@jimp/plugin-flip';

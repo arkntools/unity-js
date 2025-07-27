@@ -1,13 +1,12 @@
 {
   "name": "@arkntools/unity-js",
-  "version": "4.0.0",
+  "version": "3.4.2",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "browser": {
     "./dist/utils/aes.js": "./dist/utils/aes.browser.js",
     "./dist/utils/fmod/window.js": "./dist/utils/fmod/window.browser.js",
-    "./dist/lib/buffer/index.js": "./dist/lib/buffer/index.browser.js",
     "./dist/lib/jimp/png.js": "./dist/lib/jimp/png.browser.js"
   },
   "exports": {
@@ -62,7 +61,6 @@
     "@jimp/types": "^1.6.0",
     "@jimp/wasm-png": "^1.6.0",
     "aes-js": "^3.1.2",
-    "buffer": "^6.0.3",
     "es-toolkit": "^1.39.7",
     "jszip": "^3.10.1"
   },
