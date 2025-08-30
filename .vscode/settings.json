@@ -4,5 +4,6 @@
   },
   "editor.formatOnSave": true,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "cSpell.words": ["OUTVAR", "outvars"]
+  "cSpell.words": ["OUTVAR", "outvars"],
+  "oxc.enable": false
 }
