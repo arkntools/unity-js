@@ -30,6 +30,7 @@ export class Texture2D extends AssetBase implements GetImage {
   readonly height: number;
   readonly textureFormat: number;
   readonly streamData?: StreamInfo;
+  readonly dataSize: number;
   private readonly image: TextureDecoder;
 
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
@@ -71,7 +72,12 @@ export class Texture2D extends AssetBase implements GetImage {
         ? this.readStreamInfo(r)
         : undefined;
     const data = this.streamData?.path ? this.readData(this.streamData) : r.readBuffer(dataSize);
+    this.dataSize = this.streamData?.size ?? dataSize;
     this.image = new TextureDecoder(this, new Uint8Array(data));
+  }
+
+  get size() {
+    return this.__info.bytesSize + this.dataSize;
   }
 
   getImage() {

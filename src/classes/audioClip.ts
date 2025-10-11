@@ -189,6 +189,10 @@ export class AudioClip extends AssetBase {
     this.format = recognizeFile(this.data, magicNumbers) || 'fsb';
   }
 
+  get size() {
+    return this.__info.bytesSize + Number(this.audioSize);
+  }
+
   getAudio(): AudioClipGetResult {
     return {
       format: this.format,
