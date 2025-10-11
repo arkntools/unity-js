@@ -1,5 +1,6 @@
 import FMOD from '@arkntools/fmod';
 import { clamp, once } from 'es-toolkit';
+import type { LameVbrQuality } from '../lame';
 import { encodeMP3 } from '../lame';
 import { windowForFMOD } from './window';
 
@@ -120,7 +121,26 @@ const soundToWav = (FMOD: any, sound: any) => {
   return buffer;
 };
 
-const soundToMp3 = async (FMOD: any, sound: any) => {
+const splitWavChannels = (wav: Float32Array, stereo: boolean) => {
+  if (!stereo) {
+    return [wav];
+  }
+
+  const singleChannelLength = wav.length / 2;
+
+  const leftChannel = new Float32Array(singleChannelLength);
+  const rightChannel = new Float32Array(singleChannelLength);
+
+  for (let i = 0; i < singleChannelLength; i++) {
+    const index = i * 2;
+    leftChannel[i] = wav[index];
+    rightChannel[i] = wav[index + 1];
+  }
+
+  return [leftChannel, rightChannel];
+};
+
+const soundToMp3 = async (FMOD: any, sound: any, options?: FsbConvertOptions) => {
   const [format, channels] = sound.$getFormat(
     SYMBOL.OUTVAR_DISMISS,
     SYMBOL.OUTVAR,
@@ -130,10 +150,6 @@ const soundToMp3 = async (FMOD: any, sound: any) => {
 
   if (format !== FMOD.SOUND_FORMAT_PCMFLOAT) {
     throw new Error(`[soundToMp3] not supported for format ${format} yet`);
-  }
-
-  if (channels > 1) {
-    throw new Error('[soundToMp3] not supported for stereo yet');
   }
 
   const sampleRate = Math.floor(sound.$getDefaults(SYMBOL.OUTVAR, SYMBOL.OUTVAR_DISMISS));
@@ -149,12 +165,15 @@ const soundToMp3 = async (FMOD: any, sound: any) => {
 
   const heap: Uint8Array = FMOD.HEAPU8;
 
-  const f32pcm = new Float32Array(heap.slice(ptr1, ptr1 + len1).buffer).map(v => clamp(v, -1, 1));
+  const wavF32Pcm = new Float32Array(heap.slice(ptr1, ptr1 + len1).buffer).map(v =>
+    clamp(v, -1, 1),
+  );
 
-  const mp3 = await encodeMP3(f32pcm, {
+  const stereo = channels > 1;
+  const mp3 = await encodeMP3(splitWavChannels(wavF32Pcm, stereo), {
     sampleRate,
-    stereo: false,
-    vbrQuality: 0,
+    stereo,
+    vbrQuality: options?.vbrQuality ?? 0,
   });
 
   sound.$unlock(ptr1, ptr2, len1, len2);
@@ -172,6 +191,16 @@ const converters = {
   [FsbConvertFormat.MP3]: soundToMp3,
 };
 
+export interface FsbConvertOptions {
+  /**
+   * Only works for mp3.
+   * `0` highest quality,
+   * `9` lowest quality.
+   * @default 0
+   */
+  vbrQuality?: LameVbrQuality;
+}
+
 export const convertFsb = async (
   {
     data,
@@ -183,6 +212,7 @@ export const convertFsb = async (
     channels?: number;
   },
   target: FsbConvertFormat,
+  options?: FsbConvertOptions,
 ) => {
   const { FMOD, system } = await initFMODSystem(channels);
 
@@ -198,14 +228,14 @@ export const convertFsb = async (
   if (subSoundsNum) {
     const subSound = createWrapper(sound.$getSubSound(0, SYMBOL.OUTVAR));
     try {
-      result = await converters[target](FMOD, subSound);
+      result = await converters[target](FMOD, subSound, options);
     } catch (e) {
       error = e;
     }
     subSound.release();
   } else {
     try {
-      result = await converters[target](FMOD, sound);
+      result = await converters[target](FMOD, sound, options);
     } catch (e) {
       error = e;
     }

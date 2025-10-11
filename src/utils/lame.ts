@@ -6,7 +6,9 @@ type Mutable<T> = {
   -readonly [K in keyof T]: T[K];
 };
 
-type LameOptions = Partial<Mutable<LameInitParams>>;
+type LameOptions = Mutable<LameInitParams>;
+
+export type LameVbrQuality = LameOptions['vbrQuality'];
 
 const concat = (...uint8arrays: Uint8Array<ArrayBuffer>[]) => {
   const totalLength = sumBy(uint8arrays, uint8array => uint8array.byteLength);
@@ -21,7 +23,7 @@ const concat = (...uint8arrays: Uint8Array<ArrayBuffer>[]) => {
   return result;
 };
 
-export const encodeMP3 = async (f32pcm: Float32Array, opt: LameOptions) => {
+export const encodeMP3 = async (channels: Float32Array[], opt: Partial<LameOptions>) => {
   const lame = await Lame.load({ ...LAME_INIT_PARAMS_DEFAULTS, ...opt });
-  return concat(...lame.encode(f32pcm));
+  return concat(...lame.encode(...channels));
 };
