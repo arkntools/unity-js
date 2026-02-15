@@ -66,24 +66,24 @@
     "@jimp/types": "^1.6.0",
     "@jimp/wasm-png": "^1.6.0",
     "aes-js": "^3.1.2",
-    "es-toolkit": "^1.40.0",
+    "es-toolkit": "^1.44.0",
     "jszip": "^3.10.1"
   },
   "optionalDependencies": {
     "node-web-audio-api": "^1.0.4"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^5.4.1",
-    "@tsuk1ko/eslint-config": "^1.1.0",
+    "@antfu/eslint-config": "^7.4.3",
+    "@tsuk1ko/eslint-config": "^2.0.1",
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/aes-js": "^3.1.4",
     "@types/pngjs": "^6.0.5",
-    "eslint": "^9.37.0",
+    "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "jiti": "^2.6.1",
-    "lint-staged": "^16.2.4",
-    "prettier": "^3.6.2",
-    "rimraf": "^6.0.1",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "rimraf": "^6.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "yorkie": "^2.0.0"
