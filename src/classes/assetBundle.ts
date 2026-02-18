@@ -14,6 +14,8 @@ export class AssetBundle extends AssetBase {
   constructor(info: ObjectInfo, r: ArrayBufferReader) {
     super(info, r);
 
+    if (info.isArknightsEndfield()) r.move(4);
+
     loopEach(r.readInt32(), () => {
       this.preloadTable.push(new PPtr(this.__info, r));
     });

@@ -1,7 +1,8 @@
-import { Bundle } from './bundle';
+export { load as loadAssetBundle } from './load';
 
+export * from './assetFile';
 export * from './bundle';
-export const loadAssetBundle = Bundle.load;
+export * from './vfs';
 
 export * from './lib/jimp';
 export * from './utils/reader';

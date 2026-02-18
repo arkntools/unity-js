@@ -1,5 +1,5 @@
 import { isNotNil } from 'es-toolkit';
-import type { Bundle } from './bundle';
+import type { AssetFile } from './assetFile';
 import { createAssetObject } from './classes';
 import { ObjectInfo } from './object';
 import { SerializedType } from './serializedType';
@@ -29,7 +29,7 @@ export class Asset {
   readonly reader: ArrayBufferReader;
 
   constructor(
-    bundle: Bundle,
+    bundle: AssetFile,
     data: ArrayBuffer,
     readonly path: string,
   ) {

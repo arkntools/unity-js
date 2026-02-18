@@ -28,7 +28,10 @@ const getAstcDecodeFunc =
   (...args) =>
     decodeAstc(...args, blockSize, blockSize);
 
+const decodeRgba32: DecodeFunction = data => data;
+
 const funcMap: Partial<Record<TF, DecodeFunction>> = {
+  [TF.RGBA32]: decodeRgba32,
   [TF.ATC_RGB4]: decodeAtcRgb4,
   [TF.ATC_RGBA8]: decodeAtcRgba8,
   [TF.ASTC_RGB_4x4]: getAstcDecodeFunc(4),

@@ -107,6 +107,10 @@ export abstract class AssetBase {
     return AssetType[this.type] || 'unknown';
   }
 
+  protected get bundle() {
+    return this.__info.bundle;
+  }
+
   dump(): Record<string, any> {
     try {
       return dumpObject(this);

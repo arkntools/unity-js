@@ -151,9 +151,9 @@ export default defineConfig({
 });
 ```
 
-
 ## References
 
+- [Escartem/AnimeStudio](https://github.com/Escartem/AnimeStudio)
 - [Perfare/AssetStudio](https://github.com/Perfare/AssetStudio)
 - [RazTools/Studio](https://github.com/RazTools/Studio)
 - [K0lb3/UnityPy](https://github.com/K0lb3/UnityPy)

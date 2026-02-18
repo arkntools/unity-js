@@ -97,6 +97,9 @@ export class UnityPropertySheet {
     this.floats = new Map(loopMap(r.readInt32(), () => [r.readAlignedString(), r.readFloat32()]));
 
     this.colors = new Map(loopMap(r.readInt32(), () => [r.readAlignedString(), r.readColor()]));
+
+    // eslint-disable-next-line no-new
+    if (info.isArknightsEndfield()) new PPtr(info, r);
   }
 }
 
@@ -109,5 +112,7 @@ export class UnityTexEnv {
     this.texture = new PPtr(info, r);
     this.scale = r.readVector2();
     this.offset = r.readVector2();
+
+    if (info.isArknightsEndfield()) r.move(4);
   }
 }

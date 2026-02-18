@@ -174,7 +174,7 @@ export class AudioClip extends AssetBase {
       const path = last(this.source.split('/'));
       if (!path) throw new Error('[AudioClip] invalid source');
 
-      const { nodes, files } = this.__info.bundle;
+      const { nodes, files } = this.bundle;
       const index = nodes.findIndex(node => node.path === path);
       if (index === -1) throw new Error('[AudioClip] cannot find resource');
 

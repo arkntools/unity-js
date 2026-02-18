@@ -62,8 +62,7 @@ export class Texture2D extends AssetBase implements GetImage {
     if (version[0] >= 3) r.move(4);
     if (version[0] > 3 || (version[0] === 3 && version[1] >= 5)) r.move(4);
     if (version[0] > 2020 || (version[0] === 2020 && version[1] >= 2)) {
-      const length = r.readInt32();
-      r.readBuffer(length);
+      r.readBuffer(r.readInt32());
       r.align(4);
     }
     const dataSize = r.readInt32();
@@ -152,7 +151,7 @@ export class Texture2D extends AssetBase implements GetImage {
   }
 
   private getMixJimpRaw(alphaTexture: Texture2D) {
-    const cacheMap = this.__info.bundle.textureMixCache;
+    const cacheMap = this.bundle.textureMixCache;
     const key = `${this.pathId},${alphaTexture.pathId}`;
     const cached = cacheMap.get(key);
     if (cached) return cached.clone();
@@ -176,6 +175,7 @@ export class Texture2D extends AssetBase implements GetImage {
     r.move(12);
     if (version[0] >= 2017) r.move(12);
     else r.move(4);
+    if (this.__info.isArknightsEndfield()) r.move(4);
   }
 
   private readStreamInfo(r: ArrayBufferReader): StreamInfo {
@@ -189,9 +189,9 @@ export class Texture2D extends AssetBase implements GetImage {
 
   private readData(streamInfo: StreamInfo) {
     const sPath = last(streamInfo.path.split('/'))!;
-    const index = this.__info.bundle.nodes.findIndex(({ path }) => path === sPath);
+    const index = this.bundle.nodes.findIndex(({ path }) => path === sPath);
     if (index === -1) throw new Error(`Cannot find node by path: ${sPath}`);
-    const file = this.__info.bundle.files[index];
+    const file = this.bundle.files[index];
     const r = new ArrayBufferReader(file);
     r.seek(streamInfo.offset);
     return r.readBuffer(streamInfo.size);

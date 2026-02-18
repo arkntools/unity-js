@@ -1,5 +1,11 @@
 import { loopMap } from './loop';
 
+export interface ArrayBufferReaderOptions {
+  littleEndian?: boolean;
+  offset?: number;
+  length?: number;
+}
+
 export class ArrayBufferReader {
   private offset = 0;
   private readonly view: DataView<ArrayBuffer>;
@@ -7,9 +13,9 @@ export class ArrayBufferReader {
 
   constructor(
     buffer: ArrayBuffer,
-    private littleEndian = false,
+    private readonly options: ArrayBufferReaderOptions = {},
   ) {
-    this.view = new DataView(buffer);
+    this.view = new DataView(buffer, options.offset, options.length);
   }
 
   get length() {
@@ -20,12 +26,16 @@ export class ArrayBufferReader {
     return this.offset;
   }
 
-  clone() {
-    return new ArrayBufferReader(this.view.buffer, this.littleEndian);
+  get rawBuffer() {
+    return this.view.buffer;
+  }
+
+  clone(options?: ArrayBufferReaderOptions) {
+    return new ArrayBufferReader(this.view.buffer, { ...this.options, ...options });
   }
 
   setLittleEndian(value: boolean) {
-    this.littleEndian = value;
+    this.options.littleEndian = value;
   }
 
   seek(position: number) {
@@ -236,7 +246,7 @@ for (const bits of [16, 32, 64]) {
       (ArrayBufferReader.prototype as any)[fnName] =
         littleEndian === null
           ? function (this: any) {
-              const value = this.view[viewFnName](this.offset, this.littleEndian);
+              const value = this.view[viewFnName](this.offset, this.options.littleEndian);
               this.offset += addOffset;
               return value;
             }
@@ -261,7 +271,7 @@ for (const bits of [32, 64]) {
     (ArrayBufferReader.prototype as any)[fnName] =
       littleEndian === null
         ? function (this: any) {
-            const value = this.view[viewFnName](this.offset, this.littleEndian);
+            const value = this.view[viewFnName](this.offset, this.options.littleEndian);
             this.offset += addOffset;
             return value;
           }

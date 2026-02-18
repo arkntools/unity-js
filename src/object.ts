@@ -1,5 +1,6 @@
 import type { Asset } from './asset';
-import type { Bundle } from './bundle';
+import type { AssetFile } from './assetFile';
+import { BundleEnv } from './assetFile';
 import type { SerializedType } from './serializedType';
 import type { ArrayBufferReader } from './utils/reader';
 
@@ -19,7 +20,7 @@ export class ObjectInfo {
 
   constructor(
     readonly asset: Asset,
-    readonly bundle: Bundle,
+    readonly bundle: AssetFile,
   ) {
     const r = asset.reader;
 
@@ -60,5 +61,9 @@ export class ObjectInfo {
     if (asset.header.version === 15 || asset.header.version === 16) {
       this.stripped = r.readUInt8();
     }
+  }
+
+  isArknightsEndfield() {
+    return this.bundle.options?.env === BundleEnv.ARKNIGHTS_ENDFIELD;
   }
 }
