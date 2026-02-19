@@ -1,5 +1,5 @@
 import { SpriteSettings } from '..';
-import type { Sprite, Texture2D } from '..';
+import type { Sprite, SpriteTightInfo, Texture2D } from '..';
 import type { RectF32, Vector2, Vector4 } from '../types';
 import { bufferToHex } from '../utils/buffer';
 import { loopMap } from '../utils/loop';
@@ -41,8 +41,8 @@ export class SpriteAtlas extends AssetBase {
     this.isVariant = r.readBoolean();
   }
 
-  getImage(renderDataKey: string) {
-    return this.renderDataMap.get(renderDataKey)?.getImage();
+  getImage(renderDataKey: string, tightInfo?: SpriteTightInfo) {
+    return this.renderDataMap.get(renderDataKey)?.getImage(tightInfo);
   }
 }
 
@@ -74,8 +74,8 @@ export class SpriteAtlasData {
     }
   }
 
-  getImage() {
+  getImage(tightInfo?: SpriteTightInfo) {
     const textureObj = this.texture.object;
-    return textureObj?.getTransformedImageJimp(this, this.alphaTexture.object);
+    return textureObj?.getTransformedImageJimp(this, this.alphaTexture.object, tightInfo);
   }
 }

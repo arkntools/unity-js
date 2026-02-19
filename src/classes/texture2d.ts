@@ -1,8 +1,8 @@
 import { last } from 'es-toolkit';
 import { SpritePackingMode, SpritePackingRotation } from '..';
-import type { SpriteSettings } from '..';
+import type { SpriteSettings, SpriteTightInfo } from '..';
 import { getJimpPNG, Jimp } from '../lib/jimp';
-import type { RectF32 } from '../types';
+import type { RectF32, Vector2 } from '../types';
 import { decodeTexture } from '../utils/decodeTexture';
 import { ArrayBufferReader } from '../utils/reader';
 import type { GetImage } from './base';
@@ -18,11 +18,13 @@ export interface StreamInfo {
 
 export interface TextureTransformedOptions {
   textureRect: RectF32;
+  textureRectOffset?: Vector2;
   downscaleMultiplier?: number;
   settingsRaw?: SpriteSettings;
 }
 
 const jimpFlipVertical = (img: Jimp) => img.flip({ horizontal: false, vertical: true });
+const jimpFlipHorizontal = (img: Jimp) => img.flip({ horizontal: true, vertical: false });
 
 export class Texture2D extends AssetBase implements GetImage {
   readonly type = AssetType.Texture2D;
@@ -101,8 +103,14 @@ export class Texture2D extends AssetBase implements GetImage {
   }
 
   getTransformedImageJimp(
-    { downscaleMultiplier = 1, textureRect, settingsRaw }: TextureTransformedOptions,
+    {
+      downscaleMultiplier = 1,
+      textureRect,
+      textureRectOffset,
+      settingsRaw,
+    }: TextureTransformedOptions,
     alphaTexture?: Texture2D,
+    tightInfo?: SpriteTightInfo,
   ) {
     const img = alphaTexture ? this.getMixJimpRaw(alphaTexture) : this.getImageJimpRaw();
 
@@ -123,7 +131,7 @@ export class Texture2D extends AssetBase implements GetImage {
     if (settingsRaw?.packed === 1) {
       switch (settingsRaw.packingRotation) {
         case SpritePackingRotation.FlipHorizontal:
-          jimpFlipVertical(img);
+          jimpFlipHorizontal(img);
           break;
         case SpritePackingRotation.FlipVertical:
           jimpFlipVertical(img);
@@ -137,8 +145,33 @@ export class Texture2D extends AssetBase implements GetImage {
       }
     }
 
-    if (settingsRaw?.packingMode === SpritePackingMode.Tight) {
-      console.warn(this.name, "SpritePackingMode.Tight isn't implemented.");
+    if (settingsRaw?.packingMode === SpritePackingMode.Tight && tightInfo) {
+      const { pixelsToUnits, pivot, spriteRect } = tightInfo;
+      const triangles = tightInfo.getTriangles();
+      if (triangles.length > 0) {
+        // Transform triangle vertices from Unity local-space units to pixel
+        // coordinates within the cropped image:
+        //   Scale(pixelsToUnits) * Translate(rect.w * pivot.x - offset.x, rect.h * pivot.y - offset.y)
+        //
+        // Math.fround keeps intermediate results in float32 precision to match
+        // the original data; without it, float32 values like -0.9 (stored as
+        // -0.89999997...) multiplied in float64 produce -89.99999... instead
+        // of -90, causing 1px clipping.
+        const f = Math.fround;
+        const tx = f(f(spriteRect.w * pivot.x) - (textureRectOffset?.x ?? 0));
+        const ty = f(f(spriteRect.h * pivot.y) - (textureRectOffset?.y ?? 0));
+        const trianglesPx = triangles.map(
+          ([v0, v1, v2]): [number, number, number, number, number, number] => [
+            f(f(v0.x * pixelsToUnits) + tx),
+            f(f(v0.y * pixelsToUnits) + ty),
+            f(f(v1.x * pixelsToUnits) + tx),
+            f(f(v1.y * pixelsToUnits) + ty),
+            f(f(v2.x * pixelsToUnits) + tx),
+            f(f(v2.y * pixelsToUnits) + ty),
+          ],
+        );
+        img.applyTightMask(trianglesPx);
+      }
     }
 
     jimpFlipVertical(img);

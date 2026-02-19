@@ -112,7 +112,7 @@ export function readVFSHeader(r: ArrayBufferReader): VFSHeader {
     version: 6,
     unityVersion: '5.x.x',
     unityReversion: '2021.3.3f5',
-    size: Number(size64 & 0xffff_ffffn), // truncate to uint32 as C# does
+    size: Number(size64 & 0xffff_ffffn), // truncate to uint32
     compressedBlocksInfoSize: cbs,
     uncompressedBlocksInfoSize: ucbs,
     flags,
@@ -124,7 +124,6 @@ export function readVFSHeader(r: ArrayBufferReader): VFSHeader {
 
 export function readVFSBlocksInfos(r: ArrayBufferReader): VFSStorageBlock[] {
   // The encCount is read LE then reversed then XOR'd
-  // C#: reader.Endian = LE; encCount = ReverseEndianness(reader.ReadUInt32() ^ 0x8A7BF723)
   // Reading LE uint32 then reverse-endianness == reading BE uint32
   // So: encCount = ReverseEndianness(LE_read ^ 0x8A7BF723)
   // LE_read is the raw 4 bytes as little-endian uint32

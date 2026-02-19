@@ -60,12 +60,18 @@ export class Sprite extends AssetBase implements GetImage {
   }
 
   getImageJimp() {
+    const tightInfo: SpriteTightInfo = {
+      getTriangles: () => this.spriteRenderData.getTriangles(),
+      pixelsToUnits: this.pixelsToUnits,
+      pivot: this.pivot ?? { x: 0.5, y: 0.5 },
+      spriteRect: this.rect,
+    };
     const spriteAtlas = this.spriteAtlas?.object;
     if (spriteAtlas && this.renderDataKey) {
-      const img = spriteAtlas.getImage(this.renderDataKey);
+      const img = spriteAtlas.getImage(this.renderDataKey, tightInfo);
       if (img) return img;
     }
-    return this.spriteRenderData.getImage();
+    return this.spriteRenderData.getImage(tightInfo);
   }
 }
 
@@ -127,12 +133,72 @@ export class SpriteRenderData {
     }
   }
 
-  getImage() {
+  getImage(tightInfo?: SpriteTightInfo) {
     const textureObj = this.texture.object;
     return textureObj?.getTransformedImageJimp(
       this,
       this.alphaTexture?.object ?? this.findAlphaTexture(textureObj),
+      tightInfo,
     );
+  }
+
+  getTriangles(): Array<[Vector2, Vector2, Vector2]> {
+    if (this.vertices && this.indices) {
+      const vertices: Vector2[] = this.vertices.map(v => ({ x: v.pos.x, y: v.pos.y }));
+      const triangleCount = Math.floor(this.indices.length / 3);
+      const result: Array<[Vector2, Vector2, Vector2]> = [];
+      for (let i = 0; i < triangleCount; i++) {
+        result.push([
+          vertices[this.indices[i * 3]],
+          vertices[this.indices[i * 3 + 1]],
+          vertices[this.indices[i * 3 + 2]],
+        ]);
+      }
+      return result;
+    }
+
+    if (this.vertexData && this.indexBuffer && this.subMeshes) {
+      const result: Array<[Vector2, Vector2, Vector2]> = [];
+      const channel = this.vertexData.channels![0];
+      const stream = this.vertexData.streams![channel.stream];
+      const vertexDV = new DataView(
+        this.vertexData.dataSize.buffer,
+        this.vertexData.dataSize.byteOffset,
+        this.vertexData.dataSize.byteLength,
+      );
+      const indexDV = new DataView(
+        this.indexBuffer.buffer,
+        this.indexBuffer.byteOffset,
+        this.indexBuffer.byteLength,
+      );
+
+      for (const subMesh of this.subMeshes) {
+        const firstVertex = subMesh.firstVertex ?? 0;
+        const vertexCount = subMesh.vertexCount ?? 0;
+        let vOffset = stream.offset + firstVertex * stream.stride + channel.offset;
+        const vertices: Vector2[] = [];
+        for (let v = 0; v < vertexCount; v++) {
+          vertices.push({
+            x: vertexDV.getFloat32(vOffset, true),
+            y: vertexDV.getFloat32(vOffset + 4, true),
+          });
+          vOffset += stream.stride;
+        }
+
+        let iOffset = subMesh.firstByte;
+        const triangleCount = Math.floor(subMesh.indexCount / 3);
+        for (let i = 0; i < triangleCount; i++) {
+          const first = indexDV.getUint16(iOffset, true) - firstVertex;
+          const second = indexDV.getUint16(iOffset + 2, true) - firstVertex;
+          const third = indexDV.getUint16(iOffset + 4, true) - firstVertex;
+          iOffset += 6;
+          result.push([vertices[first], vertices[second], vertices[third]]);
+        }
+      }
+      return result;
+    }
+
+    return [];
   }
 
   private findAlphaTexture(texture: Texture2D) {
@@ -207,7 +273,7 @@ export class SpriteSettings {
 
     this.packed = raw & 1;
     this.packingMode = (raw >> 1) & 1;
-    this.packingRotation = (raw >> 2) & 1;
+    this.packingRotation = (raw >> 2) & 0xf;
     this.meshType = (raw >> 6) & 1;
   }
 }
@@ -215,4 +281,11 @@ export class SpriteSettings {
 export interface SpriteVertex {
   pos: Vector3;
   uv?: Vector2;
+}
+
+export interface SpriteTightInfo {
+  getTriangles: () => Array<[Vector2, Vector2, Vector2]>;
+  pixelsToUnits: number;
+  pivot: Vector2;
+  spriteRect: RectF32;
 }

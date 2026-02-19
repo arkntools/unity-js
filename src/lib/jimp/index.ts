@@ -5,11 +5,12 @@ import { methods as resize } from '@jimp/plugin-resize';
 import { methods as rotate } from '@jimp/plugin-rotate';
 import type { JimpClass } from '@jimp/types';
 import { mixAlpha } from './plugins/mixAlpha';
+import { tightMask } from './plugins/tightMask';
 import png from './png';
 
 export const Jimp = createJimp({
   formats: [png],
-  plugins: [flip, resize, crop, rotate, mixAlpha],
+  plugins: [flip, resize, crop, rotate, mixAlpha, tightMask],
 });
 
 // eslint-disable-next-line ts/no-redeclare
