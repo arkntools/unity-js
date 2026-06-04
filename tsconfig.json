@@ -4,6 +4,7 @@
     "module": "esnext",
     "outDir": "dist",
     "moduleResolution": "bundler",
+    "rootDir": "./src",
     "allowJs": true,
     "strict": true,
     "declaration": true,
@@ -14,5 +15,5 @@
     "experimentalDecorators": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"]
+  "include": ["./src/**/*"]
 }

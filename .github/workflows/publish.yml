@@ -3,9 +3,9 @@ name: Publish
 on:
   push:
     branches:
-      - '!*'
+      - "!*"
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   id-token: write
@@ -19,12 +19,14 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 24
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Build
-        run: yarn build
+        run: bun run build
       - name: Publish
         run: npm publish
       - name: Release
