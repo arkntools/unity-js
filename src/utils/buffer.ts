@@ -1,7 +1,7 @@
 import { sumBy } from 'es-toolkit';
 import { loopEach } from './loop';
 
-export const toUInt4Array = (data: Uint8Array) => {
+export const toUInt4Array = (data: Uint8Array<ArrayBuffer>) => {
   const result = new Uint8Array(data.length * 2);
 
   loopEach(data.length, i => {
@@ -13,7 +13,7 @@ export const toUInt4Array = (data: Uint8Array) => {
   return result;
 };
 
-export const hexToUInt8Array = (hex: string) => {
+export const hexToUInt8Array = (hex: string): Uint8Array<ArrayBuffer> => {
   if (hex.length % 2 !== 0) throw new Error('Length is not a multiple of 2');
   return new Uint8Array((hex.match(/[\da-f]{2}/gi) || []).map(h => Number.parseInt(h, 16)));
 };
@@ -36,5 +36,6 @@ export const concatArrayBuffer = (buffers: ArrayBuffer[]) => {
   return result.buffer;
 };
 
-export const ensureArrayBuffer = (data: Buffer | ArrayBuffer | Uint8Array): ArrayBuffer =>
-  data instanceof ArrayBuffer ? data : ((data.buffer || data) as unknown as ArrayBuffer);
+export const ensureArrayBuffer = (
+  data: ArrayBuffer | Uint8Array<ArrayBuffer> | Buffer<ArrayBuffer>,
+): ArrayBuffer => (data instanceof ArrayBuffer ? data : data.buffer || data);

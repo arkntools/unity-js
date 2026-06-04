@@ -8,7 +8,7 @@ import type { JimpClass } from '@jimp/types';
  * anti-aliasing.
  */
 function rasterizeTriangle(
-  mask: Uint8Array,
+  mask: Uint8Array<ArrayBuffer>,
   w: number,
   h: number,
   ax: number,

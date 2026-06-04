@@ -63,7 +63,7 @@ export class UnityCN {
     return result;
   }
 
-  private decryptByte(bytes: Uint8Array, state: DecryptState) {
+  private decryptByte(bytes: Uint8Array<ArrayBuffer>, state: DecryptState) {
     const b =
       this.subTable[((state.index >> 2) & 3) + 4] +
       this.subTable[state.index & 3] +
@@ -79,7 +79,7 @@ export class UnityCN {
     return newVal;
   }
 
-  private decrypt(bytes: Uint8Array, index: number, remaining: number) {
+  private decrypt(bytes: Uint8Array<ArrayBuffer>, index: number, remaining: number) {
     const state: DecryptState = {
       offset: 0,
       index,

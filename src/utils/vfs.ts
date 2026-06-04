@@ -277,7 +277,7 @@ function xTime(a: number): number {
   return (a & 0x80) !== 0 ? ((a << 1) ^ 0x1b) & 0xff : (a << 1) & 0xff;
 }
 
-function mixSingleColumn(a: Uint8Array): void {
+function mixSingleColumn(a: Uint8Array<ArrayBuffer>): void {
   const t = a[0] ^ a[1] ^ a[2] ^ a[3];
   const u = a[0];
   a[0] ^= t ^ xTime((a[0] ^ a[1]) & 0xff);
@@ -286,17 +286,17 @@ function mixSingleColumn(a: Uint8Array): void {
   a[3] ^= t ^ xTime((a[3] ^ u) & 0xff);
 }
 
-type State = Uint8Array[]; // 4 columns, each 4 bytes
+type State = Uint8Array<ArrayBuffer>[]; // 4 columns, each 4 bytes
 
-function bytesToMatrix(text: Uint8Array): State {
-  const rows: Uint8Array[] = [];
+function bytesToMatrix(text: Uint8Array<ArrayBuffer>): State {
+  const rows: Uint8Array<ArrayBuffer>[] = [];
   for (let i = 0; i < text.length; i += 4) {
     rows.push(new Uint8Array([text[i], text[i + 1], text[i + 2], text[i + 3]]));
   }
   return rows;
 }
 
-function matrixToBytes(m: State): Uint8Array {
+function matrixToBytes(m: State): Uint8Array<ArrayBuffer> {
   const r = new Uint8Array(16);
   let idx = 0;
   for (let i = 0; i < 4; i++) {
@@ -320,7 +320,7 @@ function shiftRows(s: State): void {
   [s[0][3], s[1][3], s[2][3], s[3][3]] = [s[3][3], s[0][3], s[1][3], s[2][3]];
 }
 
-function addRoundKey(s: State, k: Uint8Array[]): void {
+function addRoundKey(s: State, k: Uint8Array<ArrayBuffer>[]): void {
   for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) s[i][j] ^= k[i][j];
 }
 
@@ -328,7 +328,7 @@ function mixColumns(s: State): void {
   for (let i = 0; i < 4; i++) mixSingleColumn(s[i]);
 }
 
-function expandKey(): Uint8Array[][] {
+function expandKey(): Uint8Array<ArrayBuffer>[][] {
   const nRounds = 10;
   const keyCols = bytesToMatrix(VFS_KEY);
   const iterSize = VFS_KEY.length / 4;
@@ -356,9 +356,9 @@ function expandKey(): Uint8Array[][] {
   }
 
   // group into 4×4 round key matrices (column-major indexing for AddRoundKey)
-  const res: Uint8Array[][] = [];
+  const res: Uint8Array<ArrayBuffer>[][] = [];
   for (let x = 0; x < keyCols.length / 4; x++) {
-    const m: Uint8Array[] = [];
+    const m: Uint8Array<ArrayBuffer>[] = [];
     for (let c = 0; c < 4; c++) {
       m.push(
         new Uint8Array([
@@ -374,7 +374,7 @@ function expandKey(): Uint8Array[][] {
   return res;
 }
 
-function encryptBlock(plaintext: Uint8Array): Uint8Array {
+function encryptBlock(plaintext: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
   const keyMats = expandKey();
   const nRounds = 10;
   const state = bytesToMatrix(plaintext);
@@ -395,8 +395,8 @@ function encryptBlock(plaintext: Uint8Array): Uint8Array {
   return matrixToBytes(state);
 }
 
-function vfsAESDecrypt(ciphertext: Uint8Array): Uint8Array {
-  const blocks: Uint8Array[] = [];
+function vfsAESDecrypt(ciphertext: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
+  const blocks: Uint8Array<ArrayBuffer>[] = [];
   let previous = new Uint8Array(VFS_IV);
 
   for (let offset = 0; offset < ciphertext.length; offset += 16) {
@@ -437,7 +437,7 @@ function vfsAESDecrypt(ciphertext: Uint8Array): Uint8Array {
 
 // ─── DecryptBlock ──────────────────────────────────────────────
 
-export function decryptVFSBlock(buffer: Uint8Array): void {
+export function decryptVFSBlock(buffer: Uint8Array<ArrayBuffer>): void {
   if (buffer.length <= 256) {
     const dec = vfsAESDecrypt(buffer);
     buffer.set(dec.subarray(0, buffer.length));
@@ -467,7 +467,7 @@ export function decryptVFSBlock(buffer: Uint8Array): void {
 
 // ─── LZ4Inv decompress ────────────────────────────────────────
 
-function lz4InvGetLength(length: number, cmp: Uint8Array, pos: { v: number }): number {
+function lz4InvGetLength(length: number, cmp: Uint8Array<ArrayBuffer>, pos: { v: number }): number {
   if (length === 0xf) {
     let sum: number;
     do {
@@ -478,7 +478,10 @@ function lz4InvGetLength(length: number, cmp: Uint8Array, pos: { v: number }): n
   return length;
 }
 
-export function decompressLz4Inv(compressed: Uint8Array, uncompressedSize: number) {
+export function decompressLz4Inv(
+  compressed: Uint8Array<ArrayBuffer>,
+  uncompressedSize: number,
+): Uint8Array<ArrayBuffer> {
   const dec = new Uint8Array(uncompressedSize);
   const pos = { v: 0 };
   let decPos = 0;
@@ -521,14 +524,14 @@ export function decompressLz4Inv(compressed: Uint8Array, uncompressedSize: numbe
 // ─── High-level: decompress blocks info (standard LZ4) ────────
 
 export function decompressVFSBlocksInfo(
-  compressedData: Uint8Array,
+  compressedData: Uint8Array<ArrayBuffer>,
   flags: number,
   uncompressedSize: number,
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
   if ((flags & 0x3f) !== 0) {
     // encrypted + compressed
     decryptVFSBlock(compressedData);
-    return decompressLz4(compressedData, uncompressedSize);
+    return decompressLz4(compressedData, uncompressedSize) as Uint8Array<ArrayBuffer>;
   }
   return compressedData;
 }

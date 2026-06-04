@@ -284,7 +284,7 @@ export class BundleFile implements AssetFile {
   }
 }
 
-const readLongLengthNoCheck = (ip: Uint8Array, pos: number): [number, number] => {
+const readLongLengthNoCheck = (ip: Uint8Array<ArrayBuffer>, pos: number): [number, number] => {
   let b = 0;
   let l = 0;
   while (true) {

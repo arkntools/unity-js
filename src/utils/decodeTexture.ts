@@ -21,7 +21,11 @@ import {
 } from '@arkntools/unity-js-tools';
 import { TextureFormat as TF } from '../classes/types';
 
-type DecodeFunction = (data: Uint8Array, width: number, height: number) => Uint8Array;
+type DecodeFunction = (
+  data: Uint8Array<ArrayBuffer>,
+  width: number,
+  height: number,
+) => Uint8Array<ArrayBufferLike>;
 
 const getAstcDecodeFunc =
   (blockSize: number): DecodeFunction =>
@@ -70,7 +74,7 @@ const funcMap: Partial<Record<TF, DecodeFunction>> = {
   [TF.PVRTC_RGBA4]: decodePvrtc4bpp,
 } as any;
 
-const bgra2rgba = (data: Uint8Array) => {
+const bgra2rgba = (data: Uint8Array<ArrayBuffer>) => {
   for (let i = 0; i + 3 < data.length; i += 4) {
     [data[i], data[i + 2]] = [data[i + 2], data[i]];
   }
@@ -78,7 +82,7 @@ const bgra2rgba = (data: Uint8Array) => {
 };
 
 export const decodeTexture = (
-  data: Uint8Array,
+  data: Uint8Array<ArrayBuffer>,
   width: number,
   height: number,
   format: TF,
@@ -89,5 +93,5 @@ export const decodeTexture = (
   if (!decodeFunc) {
     throw new Error(`Texture2d format "${format}" decoder is not implemented. (${name})`);
   }
-  return bgra2rgba(decodeFunc(data, width, height)) as Uint8Array<ArrayBuffer>;
+  return bgra2rgba(decodeFunc(data, width, height) as Uint8Array<ArrayBuffer>);
 };

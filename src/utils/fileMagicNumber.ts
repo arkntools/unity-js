@@ -4,7 +4,7 @@ export interface FileMagicNumber {
   start?: number;
 }
 
-export const recognizeFile = (data: Uint8Array, magicNumbers: FileMagicNumber[]) => {
+export const recognizeFile = (data: Uint8Array<ArrayBuffer>, magicNumbers: FileMagicNumber[]) => {
   for (const { name, numbers, start = 0 } of magicNumbers) {
     if (numbers.every((v, i) => data[start + i] === v)) {
       return name;

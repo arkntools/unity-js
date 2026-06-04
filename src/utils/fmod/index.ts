@@ -98,7 +98,7 @@ const soundToWav = (FMOD: any, sound: any) => {
   }
 
   const textEncoder = new TextEncoder();
-  const buffer = new Uint8Array<ArrayBuffer>(len1 + 44);
+  const buffer = new Uint8Array(len1 + 44);
 
   buffer.set(textEncoder.encode('RIFF'), 0);
   buffer.set(numberToBits(len1 + 36), 4);
@@ -113,7 +113,7 @@ const soundToWav = (FMOD: any, sound: any) => {
   buffer.set(textEncoder.encode('data'), 36);
   buffer.set(numberToBits(len1), 40);
 
-  const heap: Uint8Array = FMOD.HEAPU8;
+  const heap: Uint8Array<ArrayBufferLike> = FMOD.HEAPU8;
   buffer.set(heap.subarray(ptr1, ptr1 + len1), 44);
 
   sound.$unlock(ptr1, ptr2, len1, len2);
@@ -163,7 +163,7 @@ const soundToMp3 = async (FMOD: any, sound: any, options?: FsbConvertOptions) =>
     SYMBOL.OUTVAR,
   );
 
-  const heap: Uint8Array = FMOD.HEAPU8;
+  const heap: Uint8Array<ArrayBufferLike> = FMOD.HEAPU8;
 
   const wavF32Pcm = new Float32Array(heap.slice(ptr1, ptr1 + len1).buffer).map(v =>
     clamp(v, -1, 1),
@@ -207,7 +207,7 @@ export const convertFsb = async (
     size,
     channels = 1,
   }: {
-    data: Uint8Array;
+    data: Uint8Array<ArrayBuffer>;
     size: number;
     channels?: number;
   },

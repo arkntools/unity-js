@@ -8,7 +8,7 @@ import { unzipIfNeed } from './utils/zip';
 import { VFSFile } from './vfs';
 
 export async function load(
-  data: Buffer | ArrayBuffer | Uint8Array,
+  data: ArrayBuffer | Uint8Array<ArrayBuffer> | Buffer<ArrayBuffer>,
   options?: AssetFileLoadOptions,
 ): Promise<AssetFile> {
   const buf = ensureArrayBuffer(data);

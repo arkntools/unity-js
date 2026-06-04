@@ -8,7 +8,7 @@ import type { ImgBitMap, ObjectInfo } from './types';
 import { AssetType } from './types';
 
 export interface GetImage {
-  getImage: () => Promise<Buffer> | undefined;
+  getImage: () => Promise<Buffer<ArrayBuffer>> | undefined;
   getImageJimp: () => JimpClass | undefined;
   getImageBitmap: () => ImgBitMap | undefined;
 }
