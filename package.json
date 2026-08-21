@@ -6,7 +6,6 @@
   "types": "./dist/index.d.ts",
   "browser": {
     "./dist/utils/aes.js": "./dist/utils/aes.browser.js",
-    "./dist/utils/fmod/window.js": "./dist/utils/fmod/window.browser.js",
     "./dist/lib/jimp/png.js": "./dist/lib/jimp/png.browser.js"
   },
   "exports": {
@@ -65,23 +64,20 @@
     "@jimp/types": "^1.6.1",
     "@jimp/wasm-png": "^1.6.1",
     "aes-js": "^3.1.2",
-    "es-toolkit": "^1.47.0",
+    "es-toolkit": "^1.51.0",
     "jszip": "^3.10.1"
   },
-  "optionalDependencies": {
-    "node-web-audio-api": "^2.0.0"
-  },
   "devDependencies": {
-    "@antfu/eslint-config": "^9.0.0",
+    "@antfu/eslint-config": "^9.3.0",
     "@tsuk1ko/eslint-config": "^2.1.1",
     "@tsuk1ko/postversion": "^1.0.2",
     "@types/aes-js": "^3.1.4",
     "@types/pngjs": "^6.0.5",
-    "eslint": "^10.4.1",
+    "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
     "jiti": "^2.7.0",
-    "lint-staged": "^17.0.7",
-    "prettier": "^3.8.3",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6",
     "rimraf": "^6.1.3",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",

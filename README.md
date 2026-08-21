@@ -69,12 +69,6 @@ for (const obj of bundle.objects) {
 
 ### Audio
 
-> [!WARNING]
-> If `convertFsb()` is executed in a Node environment, the process can't exit for unknown reasons (possibly due to internal implementation issues with `FMOD` causing `node-web-audio-api` to not be properly released). Please manually call `process.exit()`.
-
-> [!NOTE]
-> `convertFsb()` require [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API), so it can't be called inside worker.
-
 ```js
 import fs from 'fs';
 import { loadAssetBundle, AssetType, BundleEnv } from '@arkntools/unity-js';

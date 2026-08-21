@@ -2,7 +2,6 @@ import FMOD from '@arkntools/fmod';
 import { clamp, once } from 'es-toolkit';
 import type { LameVbrQuality } from '../lame';
 import { encodeMP3 } from '../lame';
-import { windowForFMOD } from './window';
 
 const SYMBOL = {
   OUTVAR: Symbol('outvar'),
@@ -40,7 +39,6 @@ const createWrapper = (Module: any) =>
 const initFMOD = once(async () => {
   if (!globalThis.self) (globalThis as any).self = globalThis;
   const Module = await FMOD();
-  Module.window = windowForFMOD;
   return createWrapper(Module);
 });
 
@@ -51,6 +49,8 @@ const initFMODSystem = async (channels: number) => {
   let system = systemCache.get(channels);
   if (!system) {
     system = createWrapper(FMOD.$System_Create(SYMBOL.OUTVAR));
+    // Decode-only: skip the Web Audio output driver.
+    system.$setOutput(FMOD.OUTPUTTYPE_NOSOUND);
     system.$init(channels, FMOD.INIT_NORMAL, 0);
     systemCache.set(channels, system);
   }
